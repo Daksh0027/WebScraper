@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import re
 import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from html.parser import HTMLParser
 from pathlib import Path
@@ -120,6 +122,12 @@ class PageParser(HTMLParser):
 
 
 class WebsiteScraper:
+    USER_AGENT = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0 Safari/537.36"
+    )
+
     def __init__(
         self,
         start_url: str,
@@ -127,6 +135,8 @@ class WebsiteScraper:
         delay_seconds: float = 0.0,
         same_domain_only: bool = True,
         timeout_seconds: float = 15.0,
+        fetch_backend: str = "urllib",
+        use_playwright_stealth: bool = False,
     ) -> None:
         self.start_url = self._normalize_url(start_url)
         self.max_pages = max_pages
@@ -134,8 +144,36 @@ class WebsiteScraper:
         self.same_domain_only = same_domain_only
         self.timeout_seconds = timeout_seconds
         self.allowed_netloc = urlparse(self.start_url).netloc
+        self.fetch_backend = fetch_backend
+        self.use_playwright_stealth = use_playwright_stealth
 
     def scrape(self) -> list[ScrapedPage]:
+        if self.fetch_backend == "playwright":
+            return self._scrape_with_playwright()
+        return self._scrape_with_urllib()
+
+    def _scrape_with_urllib(self) -> list[ScrapedPage]:
+        return self._crawl(self._fetch_url_with_urllib)
+
+    def _scrape_with_playwright(self) -> list[ScrapedPage]:
+        try:
+            sync_api = importlib.import_module("playwright.sync_api")
+            sync_playwright = sync_api.sync_playwright
+        except ImportError as exc:
+            raise RuntimeError(
+                "Playwright backend requires `playwright`. Install with: pip install playwright && playwright install chromium"
+            ) from exc
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            context = browser.new_context(user_agent=self.USER_AGENT)
+            try:
+                return self._crawl(lambda url: self._fetch_url_with_playwright(url, context))
+            finally:
+                context.close()
+                browser.close()
+
+    def _crawl(self, fetch_html: Callable[[str], tuple[str, str] | None]) -> list[ScrapedPage]:
         queue: deque[str] = deque([self.start_url])
         visited: set[str] = set()
         results: list[ScrapedPage] = []
@@ -149,22 +187,10 @@ class WebsiteScraper:
                 continue
             visited.add(url)
 
-            try:
-                request = Request(
-                    url,
-                    headers={
-                        "User-Agent": (
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                            "AppleWebKit/537.36 (KHTML, like Gecko) "
-                            "Chrome/124.0 Safari/537.36"
-                        )
-                    },
-                )
-                with urlopen(request, timeout=self.timeout_seconds) as response:
-                    content_type = response.headers.get("content-type", "")
-                    html = response.read().decode(response.headers.get_content_charset() or "utf-8", errors="replace")
-            except (HTTPError, URLError, TimeoutError, UnicodeError):
+            fetched = fetch_html(url)
+            if fetched is None:
                 continue
+            content_type, html = fetched
 
             if "text/html" not in content_type:
                 continue
@@ -196,6 +222,43 @@ class WebsiteScraper:
                 time.sleep(self.delay_seconds)
 
         return results
+
+    def _fetch_url_with_urllib(self, url: str) -> tuple[str, str] | None:
+        try:
+            request = Request(url, headers={"User-Agent": self.USER_AGENT})
+            with urlopen(request, timeout=self.timeout_seconds) as response:
+                content_type = response.headers.get("content-type", "")
+                html = response.read().decode(response.headers.get_content_charset() or "utf-8", errors="replace")
+        except (HTTPError, URLError, TimeoutError, UnicodeError):
+            return None
+        return content_type, html
+
+    def _fetch_url_with_playwright(self, url: str, context: object) -> tuple[str, str] | None:
+        try:
+            page = context.new_page()
+            if self.use_playwright_stealth:
+                try:
+                    stealth_module = importlib.import_module("playwright_stealth")
+                    stealth_sync = stealth_module.stealth_sync
+                except ImportError as exc:
+                    raise RuntimeError(
+                        "Stealth mode requires `playwright-stealth`. Install with: pip install playwright-stealth"
+                    ) from exc
+                stealth_sync(page)
+
+            response = page.goto(url, wait_until="domcontentloaded", timeout=int(self.timeout_seconds * 1000))
+            content_type = ""
+            if response is not None:
+                headers = response.headers or {}
+                content_type = headers.get("content-type", "")
+            html = page.content()
+            page.close()
+        except Exception:
+            return None
+
+        if not content_type:
+            content_type = "text/html"
+        return content_type, html
 
     def analyze(self, pages: list[ScrapedPage]) -> WebsiteAnalysis:
         if not pages:
@@ -426,6 +489,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-pages", type=int, default=12, help="Maximum number of pages to crawl")
     parser.add_argument("--delay", type=float, default=0.0, help="Delay in seconds between requests")
     parser.add_argument(
+        "--backend",
+        choices=["urllib", "playwright"],
+        default="urllib",
+        help="Fetch backend. Use 'playwright' for JS-heavy sites.",
+    )
+    parser.add_argument(
+        "--playwright-stealth",
+        action="store_true",
+        help="Enable playwright-stealth evasions (only when --backend playwright is used).",
+    )
+    parser.add_argument(
         "--no-same-domain",
         action="store_true",
         help="Allow following links to other domains",
@@ -447,6 +521,8 @@ def main() -> int:
         max_pages=args.max_pages,
         delay_seconds=args.delay,
         same_domain_only=not args.no_same_domain,
+        fetch_backend=args.backend,
+        use_playwright_stealth=args.playwright_stealth,
     )
     pages = scraper.scrape()
     analysis = scraper.analyze(pages)

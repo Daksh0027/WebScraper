@@ -1,4 +1,3 @@
 /.venv
-/requirements.txt
 /scraped_pages.json
 /__pycache__

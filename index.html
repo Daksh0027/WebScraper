@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WICK — Website Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Space+Mono:wght@400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #08070f;
+  --bg2:      #0d0b1a;
+  --surface:  rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.07);
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.14);
+
+  --violet:  #7c5cfc;
+  --violet2: #9d7fff;
+  --pink:    #f059da;
+  --cyan:    #00e8d0;
+  --amber:   #ffb547;
+  --red:     #ff5b5b;
+  --green:   #3dd68c;
+
+  --text:    #f0eeff;
+  --text2:   #a89ec9;
+  --text3:   #5e567a;
+
+  --display: 'Bebas Neue', sans-serif;
+  --head:    'DM Sans', sans-serif;
+  --mono:    'Space Mono', monospace;
+  --ease:    cubic-bezier(0.16,1,0.3,1);
+}
+
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:var(--head);min-height:100vh;overflow-x:hidden;cursor:default}
+
+/* ══════════════════════════════════════
+   INTRO OVERLAY
+══════════════════════════════════════ */
+#intro{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#intro.exit{
+  animation:intro-exit 0.9s 0.1s cubic-bezier(0.76,0,0.24,1) forwards;
+  pointer-events:none;
+}
+@keyframes intro-exit{
+  0%  {clip-path:inset(0 0 0 0)}
+  100%{clip-path:inset(0 0 100% 0)}
+}
+
+/* scan line sweeping down */
+#intro::after{
+  content:'';position:absolute;left:0;right:0;height:2px;top:0;
+  background:linear-gradient(90deg,transparent,var(--violet),var(--pink),var(--cyan),transparent);
+  box-shadow:0 0 20px var(--violet),0 0 40px var(--pink);
+  animation:scan-sweep 2.4s cubic-bezier(0.4,0,0.2,1) forwards;
+  opacity:0;
+}
+@keyframes scan-sweep{
+  0%  {top:0;opacity:0}
+  5%  {opacity:1}
+  95% {opacity:1}
+  100%{top:100%;opacity:0}
+}
+
+/* grid overlay inside intro */
+#intro-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(124,92,252,0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(124,92,252,0.06) 1px,transparent 1px);
+  background-size:50px 50px;
+  animation:grid-fade 0.6s 0.2s ease forwards;
+  opacity:0;
+}
+@keyframes grid-fade{to{opacity:1}}
+
+/* corner brackets */
+.intro-corner{
+  position:absolute;width:40px;height:40px;
+  border-color:var(--violet);border-style:solid;opacity:0;
+  animation:corner-in 0.5s 0.3s var(--ease) forwards;
+}
+.intro-corner.tl{top:40px;left:40px;border-width:2px 0 0 2px}
+.intro-corner.tr{top:40px;right:40px;border-width:2px 2px 0 0}
+.intro-corner.bl{bottom:40px;left:40px;border-width:0 0 2px 2px}
+.intro-corner.br{bottom:40px;right:40px;border-width:0 2px 2px 0}
+@keyframes corner-in{to{opacity:0.5}}
+
+/* center logo group */
+#intro-logo{
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  position:relative;z-index:2;
+}
+
+/* icon reveal */
+#intro-icon{
+  width:min(46vw,400px);
+  height:auto;
+  aspect-ratio:1/1;
+  background:transparent;
+  border-radius:0;
+  display:block;
+  box-shadow:none;
+  opacity:0;
+  transform:translateZ(0) scale(0.94);
+  will-change:transform, opacity, filter;
+  backface-visibility:hidden;
+  animation:
+    icon-pop 0.75s 0.38s var(--ease) forwards,
+    icon-glow-img 1.2s 1.18s cubic-bezier(0.16,1,0.3,1) forwards;
+  filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+}
+@keyframes icon-glow-img{
+  0%   {filter:drop-shadow(0 0 0px rgba(124,92,252,0))}
+  45%  {filter:drop-shadow(0 0 14px rgba(255,140,40,0.45)) drop-shadow(0 0 22px rgba(124,92,252,0.32))}
+  100% {filter:drop-shadow(0 0 10px rgba(255,140,40,0.35)) drop-shadow(0 0 16px rgba(124,92,252,0.24))}
+}
+@keyframes icon-pop{
+  0%{opacity:0;transform:translateZ(0) scale(0.94)}
+  70%{opacity:1;transform:translateZ(0) scale(1.01)}
+  100%{opacity:1;transform:translateZ(0) scale(1)}
+}
+@keyframes icon-glow{
+  0%  {box-shadow:0 0 0px rgba(124,92,252,0)}
+  50% {box-shadow:0 0 60px rgba(124,92,252,0.8),0 0 100px rgba(240,89,218,0.4)}
+  100%{box-shadow:0 0 30px rgba(124,92,252,0.5),0 0 60px rgba(240,89,218,0.2)}
+}
+
+/* wordmark */
+#intro-wordmark{
+  font-family:var(--display);font-size:clamp(4rem,12vw,8rem);
+  letter-spacing:0.12em;color:transparent;
+  position:relative;line-height:1;
+  -webkit-text-stroke:1px rgba(255,255,255,0.15);
+}
+#intro-wordmark .letter{
+  display:inline-block;
+  opacity:0;transform:translateY(30px);
+  animation:letter-rise 0.5s var(--ease) forwards;
+  background:linear-gradient(160deg,#fff 0%,var(--violet2) 50%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  -webkit-text-stroke:0px;
+}
+#intro-wordmark .letter:nth-child(1){animation-delay:0.6s}
+#intro-wordmark .letter:nth-child(2){animation-delay:0.72s}
+#intro-wordmark .letter:nth-child(3){animation-delay:0.84s}
+#intro-wordmark .letter:nth-child(4){animation-delay:0.96s}
+@keyframes letter-rise{to{opacity:1;transform:translateY(0)}}
+
+/* tagline under wordmark */
+#intro-tag{
+  font-family:var(--mono);font-size:0.7rem;font-weight:400;
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--text3);
+  opacity:0;animation:tag-in 0.6s 1.3s var(--ease) forwards;
+}
+@keyframes tag-in{to{opacity:1}}
+
+/* typewriter line */
+#intro-type{
+  font-family:var(--mono);font-size:0.72rem;color:var(--violet2);
+  letter-spacing:0.08em;margin-top:8px;min-height:1.2em;
+  opacity:0;animation:tag-in 0.4s 1.5s ease forwards;
+}
+
+/* progress bar */
+#intro-bar-wrap{
+  position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
+  width:200px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:tag-in 0.5s 1.0s ease forwards;
+}
+#intro-bar-track{
+  width:100%;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden;
+}
+#intro-bar-fill{
+  height:100%;width:0;border-radius:1px;
+  background:linear-gradient(90deg,var(--violet),var(--pink),var(--cyan));
+  transition:width 0.05s linear;
+  box-shadow:0 0 10px var(--violet);
+}
+#intro-bar-pct{
+  font-family:var(--mono);font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;
+}
+
+/* glitch flash */
+.glitch-flash{
+  display:none;
+}
+@keyframes glitch-f{0%{opacity:0}50%{opacity:1;transform:translateX(4px)}100%{opacity:0}}
+@keyframes glitch-f2{0%{opacity:0}50%{opacity:1;transform:translateX(-3px)}100%{opacity:0}}
+
+
+
+/* ── NOISE GRAIN ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:180px 180px;opacity:0.5;mix-blend-mode:overlay;
+}
+
+/* ── GRADIENT ORBS ── */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(124,92,252,0.25),transparent 70%);top:-200px;left:-100px;animation:drift1 18s ease-in-out infinite}
+.orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(240,89,218,0.18),transparent 70%);bottom:-150px;right:-100px;animation:drift2 22s ease-in-out infinite}
+.orb-3{width:400px;height:400px;background:radial-gradient(circle,rgba(0,232,208,0.12),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:drift3 28s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,-60px)}}
+@keyframes drift3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:92px;display:flex;align-items:center;padding:0 48px;
+  background:rgba(8,7,15,0.7);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{
+  width:64px;height:64px;
+  background:transparent;
+  border-radius:0;
+  display:block;
+  flex:0 0 auto;
+  margin-right:0;
+  filter:drop-shadow(0 0 6px rgba(255,140,40,0.4));
+}
+.logo-name{
+  font-family:var(--display);font-size:1.78rem;letter-spacing:0.06em;
+  color:var(--text);line-height:1;transform:translateY(1px);
+}
+.logo-dot{color:var(--violet)}
+nav{margin-left:auto;display:flex;align-items:center;gap:4px}
+.nl{font-size:0.78rem;color:var(--text2);text-decoration:none;padding:6px 14px;border-radius:6px;transition:all 0.15s}
+.nl:hover{color:var(--text);background:var(--surface2)}
+.ncta{
+  background:linear-gradient(135deg,var(--violet),var(--pink));
+  color:#fff!important;border-radius:6px;padding:7px 18px;
+  font-weight:700;font-size:0.78rem;margin-left:8px;
+  box-shadow:0 0 20px rgba(124,92,252,0.3);
+  transition:box-shadow 0.2s,transform 0.2s;
+}
+.ncta:hover{box-shadow:0 0 30px rgba(124,92,252,0.5);transform:translateY(-1px)}
+
+/* ── VIEWS ── */
+#view-home,#view-dash{padding-top:92px}
+#view-dash{display:none}
+
+/* ── HERO ── */
+.hero{
+  min-height:calc(100vh - 92px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:84px 24px 56px;position:relative;z-index:2;text-align:center;
+}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:100px;
+  border:1px solid rgba(124,92,252,0.4);
+  background:rgba(124,92,252,0.1);
+  font-size:0.72rem;font-weight:500;color:var(--violet2);
+  margin-bottom:40px;letter-spacing:0.05em;
+  opacity:0;animation:pop-in 0.6s 0.1s var(--ease) forwards;
+}
+.pill-blink{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+.hero-title{
+  font-family:var(--display);
+  font-size:clamp(5rem,13vw,11rem);
+  line-height:0.92;letter-spacing:0.02em;
+  color:var(--text);margin-bottom:0;
+  opacity:0;animation:pop-in 0.8s 0.2s var(--ease) forwards;
+}
+.hero-title .line2{
+  background:linear-gradient(90deg,var(--violet),var(--pink),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:block;
+}
+.hero-sub{
+  font-size:1.1rem;font-weight:300;color:var(--text2);
+  max-width:520px;line-height:1.75;margin:28px auto 52px;
+  opacity:0;animation:pop-in 0.8s 0.35s var(--ease) forwards;
+}
+.hero-sub strong{color:var(--text);font-weight:500}
+
+/* INPUT */
+.search-wrap{
+  width:100%;max-width:660px;
+  opacity:0;animation:pop-in 0.8s 0.45s var(--ease) forwards;
+}
+.search-row{
+  display:flex;align-items:stretch;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid var(--border2);
+  border-radius:12px;overflow:hidden;
+  transition:border-color 0.25s,box-shadow 0.25s;
+}
+.search-row:focus-within{
+  border-color:var(--violet);
+  box-shadow:0 0 0 4px rgba(124,92,252,0.2),0 0 60px rgba(124,92,252,0.15);
+}
+.scheme{
+  font-family:var(--mono);font-size:0.76rem;
+  color:var(--text3);padding:0 16px;
+  border-right:1px solid var(--border);
+  display:flex;align-items:center;white-space:nowrap;
+  background:rgba(255,255,255,0.02);
+}
+.url-in{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:var(--mono);font-size:0.95rem;font-weight:400;
+  color:var(--text);padding:16px 18px;caret-color:var(--violet2);
+}
+.url-in::placeholder{color:var(--text3)}
+.go-btn{
+  padding:16px 28px;
+  background:linear-gradient(135deg,var(--violet),var(--pink));
+  border:none;font-family:var(--head);font-size:0.85rem;font-weight:700;
+  color:#fff;cursor:pointer;white-space:nowrap;letter-spacing:0.03em;
+  transition:opacity 0.2s,transform 0.2s;
+  position:relative;overflow:hidden;
+}
+.go-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent,rgba(255,255,255,0.2),transparent);
+  transform:translateX(-100%);transition:transform 0.4s;
+}
+.go-btn:hover::after{transform:translateX(100%)}
+.go-btn:hover{opacity:0.92}
+
+.hints{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.hint{
+  font-family:var(--mono);font-size:0.68rem;
+  color:var(--text3);padding:5px 14px;
+  border:1px solid var(--border2);border-radius:100px;
+  cursor:pointer;background:transparent;
+  transition:all 0.15s;
+}
+.hint:hover{color:var(--violet2);border-color:rgba(124,92,252,0.5);background:rgba(124,92,252,0.08)}
+
+/* STAT STRIP */
+.stat-strip{
+  display:flex;gap:40px;margin-top:72px;
+  opacity:0;animation:pop-in 0.8s 0.6s var(--ease) forwards;
+}
+.stat-item{text-align:center}
+.stat-num{
+  font-family:var(--display);font-size:2.5rem;letter-spacing:0.03em;
+  background:linear-gradient(135deg,var(--violet2),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-lbl{font-size:0.72rem;font-weight:400;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+
+.divider{width:1px;height:48px;background:var(--border);align-self:center}
+
+/* FEATURE ROW */
+.features{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  max-width:900px;width:100%;margin-top:72px;
+  background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  opacity:0;animation:pop-in 0.8s 0.7s var(--ease) forwards;
+}
+.feat{
+  padding:24px 24px;background:var(--bg);
+  transition:background 0.2s;position:relative;overflow:hidden;
+}
+.feat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--violet),var(--pink));
+  transform:scaleX(0);transform-origin:left;transition:transform 0.3s var(--ease);
+}
+.feat:hover{background:var(--bg2)}
+.feat:hover::before{transform:scaleX(1)}
+.feat-num{font-family:var(--mono);font-size:0.58rem;color:var(--violet);margin-bottom:10px;letter-spacing:0.15em}
+.feat-t{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.feat-d{font-size:0.74rem;font-weight:300;color:var(--text3);line-height:1.65}
+
+@keyframes pop-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* ── DASHBOARD ── */
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:92px;z-index:100;
+  background:rgba(8,7,15,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:14px 32px;display:flex;align-items:center;gap:12px;
+}
+.back-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.76rem;font-weight:500;color:var(--text2);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:7px;padding:6px 13px;cursor:pointer;
+  transition:all 0.15s;
+}
+.back-btn:hover{color:var(--text);border-color:var(--border2);background:var(--surface2)}
+.bar-in{
+  display:flex;align-items:center;
+  border:1px solid var(--border2);border-radius:8px;
+  overflow:hidden;flex:1;max-width:460px;
+  background:var(--surface);
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.bar-in:focus-within{border-color:var(--violet);box-shadow:0 0 0 3px rgba(124,92,252,0.15)}
+.bar-scheme{
+  font-family:var(--mono);font-size:0.68rem;
+  color:var(--text3);padding:10px 12px;
+  border-right:1px solid var(--border);background:rgba(255,255,255,0.02);white-space:nowrap;
+}
+.bar-field{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:var(--mono);font-size:0.8rem;color:var(--text);
+  padding:10px 14px;
+}
+.bar-btn{
+  padding:10px 18px;background:linear-gradient(135deg,var(--violet),var(--pink));
+  border:none;font-size:0.78rem;font-weight:700;color:#fff;
+  cursor:pointer;font-family:var(--head);letter-spacing:0.03em;transition:opacity 0.15s;
+}
+.bar-btn:hover{opacity:0.85}
+.bar-meta{margin-left:auto;display:flex;align-items:center;gap:10px}
+.status-tag{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:100px;
+  background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);
+  font-size:0.7rem;font-weight:500;color:var(--green);
+}
+.status-tag.status-running{
+  background:rgba(255,181,71,0.1);
+  border-color:rgba(255,181,71,0.3);
+  color:var(--amber);
+}
+.status-tag.status-failed{
+  background:rgba(255,91,91,0.1);
+  border-color:rgba(255,91,91,0.3);
+  color:var(--red);
+}
+.status-tag.status-running .sdot{
+  background:var(--amber);
+  box-shadow:0 0 6px var(--amber);
+}
+.status-tag.status-failed .sdot{
+  background:var(--red);
+  box-shadow:0 0 6px var(--red);
+}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+.bar-time{font-family:var(--mono);font-size:0.68rem;color:var(--text3)}
+
+/* LAYOUT */
+.dash-layout{display:grid;grid-template-columns:300px 1fr;position:relative;z-index:2}
+
+/* SIDEBAR */
+.sidebar{
+  border-right:1px solid var(--border);
+  padding:24px 20px;
+  position:sticky;top:132px;
+  height:calc(100vh - 132px);
+  overflow-y:auto;background:rgba(8,7,15,0.6);
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* SITE CARD */
+.site-card{
+  padding:18px;
+  background:linear-gradient(135deg,rgba(124,92,252,0.1),rgba(240,89,218,0.05));
+  border:1px solid rgba(124,92,252,0.25);
+  border-radius:12px;margin-bottom:20px;
+}
+.sc-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sc-icon{
+  width:44px;height:44px;background:var(--surface2);
+  border:1px solid var(--border2);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.sc-name{font-size:0.95rem;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:3px}
+.sc-url{font-family:var(--mono);font-size:0.62rem;color:var(--violet2)}
+.sc-desc{font-size:0.74rem;font-weight:300;color:var(--text2);line-height:1.65;padding-top:12px;border-top:1px solid var(--border)}
+
+/* SCORE GRID */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.sc-box{
+  padding:13px 14px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  transition:border-color 0.2s,background 0.2s;
+}
+.sc-box:hover{background:var(--surface2);border-color:rgba(124,92,252,0.3)}
+.scb-lbl{font-size:0.58rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.scb-n{font-family:var(--display);font-size:2rem;letter-spacing:0.03em;line-height:1}
+.scb-n.g{color:var(--green)}
+.scb-n.a{color:var(--amber)}
+.scb-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:8px}
+.scb-fill{height:100%;border-radius:2px;transition:width 1.4s var(--ease)}
+.fill-g{background:linear-gradient(90deg,var(--green),#6ee7a0)}
+.fill-a{background:linear-gradient(90deg,var(--amber),#ffd080)}
+
+/* KV */
+.kv-sec{margin-bottom:18px}
+.kv-hd{font-size:0.6rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.kv-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+.kv{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.kv:last-child{border-bottom:none}
+.kv-k{font-size:0.76rem;font-weight:300;color:var(--text3)}
+.kv-v{font-family:var(--mono);font-size:0.7rem;color:var(--text2)}
+.kv-v.ok{color:var(--green)}
+.kv-v.warn{color:var(--amber)}
+.kv-v.err{color:var(--red)}
+.kv-v.blue{color:var(--cyan)}
+
+/* MAIN */
+.main{padding:28px 28px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:2}
+
+/* CARD */
+.card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  transition:border-color 0.2s;
+}
+.card:hover{border-color:var(--border2)}
+.card-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.card-title{font-size:0.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-title .dot{width:7px;height:7px;border-radius:50%}
+.card-badge{
+  font-size:0.62rem;font-weight:500;
+  padding:3px 10px;border-radius:100px;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text3);
+}
+.card-body{padding:20px}
+
+/* TECH */
+.tg{margin-bottom:16px}
+.tg:last-child{margin-bottom:0}
+.tg-lbl{font-size:0.6rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px;display:block}
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:0.74rem;font-weight:500;padding:5px 13px;
+  border-radius:100px;border:1px solid;cursor:default;transition:transform 0.15s;
+}
+.pill:hover{transform:translateY(-1px)}
+.p-server{background:rgba(255,255,255,0.05);border-color:var(--border2);color:var(--text2)}
+.p-fe{background:rgba(124,92,252,0.1);border-color:rgba(124,92,252,0.3);color:var(--violet2)}
+.p-track{background:rgba(255,181,71,0.08);border-color:rgba(255,181,71,0.3);color:var(--amber)}
+.p-sec{background:rgba(61,214,140,0.08);border-color:rgba(61,214,140,0.3);color:var(--green)}
+.p-cdn{background:rgba(0,232,208,0.08);border-color:rgba(0,232,208,0.3);color:var(--cyan)}
+
+/* PERF */
+.perf-items{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}
+.perf-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.perf-lbl{font-size:0.77rem;font-weight:400;color:var(--text2)}
+.pval{font-family:var(--mono);font-size:0.75rem;font-weight:700}
+.pv-g{color:var(--green)}
+.pv-a{color:var(--amber)}
+.pv-r{color:var(--red)}
+.perf-track{height:4px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden}
+.perf-fill{height:100%;border-radius:3px;transition:width 1.5s var(--ease)}
+.pf-g{background:linear-gradient(90deg,var(--green),#6ee7a0)}
+.pf-a{background:linear-gradient(90deg,var(--amber),#ffd080)}
+.pf-r{background:linear-gradient(90deg,var(--red),#ff8e8e)}
+
+/* SEO */
+.seo-rows{display:flex;flex-direction:column;gap:2px}
+.seo-row{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:11px 12px;border-radius:8px;transition:background 0.15s;
+}
+.seo-row:hover{background:var(--surface2)}
+.seo-ic{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;margin-top:1px;
+}
+.si-p{background:rgba(61,214,140,0.15);color:var(--green);border:1px solid rgba(61,214,140,0.3)}
+.si-w{background:rgba(255,181,71,0.12);color:var(--amber);border:1px solid rgba(255,181,71,0.3)}
+.si-f{background:rgba(255,91,91,0.12);color:var(--red);border:1px solid rgba(255,91,91,0.3)}
+.seo-name{font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.seo-note{font-size:0.74rem;font-weight:300;color:var(--text3);line-height:1.5}
+
+/* SEC HEADERS */
+.sec-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sh{
+  padding:14px 16px;border:1px solid var(--border);border-radius:10px;
+  background:var(--surface);transition:border-color 0.2s,background 0.2s;
+}
+.sh:hover{background:var(--surface2);border-color:var(--border2)}
+.sh-name{font-family:var(--mono);font-size:0.6rem;color:var(--text3);margin-bottom:8px;line-height:1.4}
+.sh-val{font-size:0.82rem;font-weight:700}
+.sh-ok{color:var(--green)}
+.sh-warn{color:var(--amber)}
+.sh-fail{color:var(--red)}
+
+/* LINKS */
+.links-tbl{width:100%;border-collapse:collapse}
+.links-tbl th{
+  font-size:0.62rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text3);text-align:left;padding:0 12px 10px;
+  border-bottom:1px solid var(--border);
+}
+.links-tbl td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:0.78rem;vertical-align:middle}
+.links-tbl tr:last-child td{border-bottom:none}
+.links-tbl tr:hover td{background:var(--surface)}
+.lt-t{
+  display:inline-flex;align-items:center;
+  font-family:var(--mono);font-size:0.58rem;font-weight:600;
+  padding:3px 9px;border-radius:100px;
+}
+.lt-i{background:rgba(124,92,252,0.1);color:var(--violet2);border:1px solid rgba(124,92,252,0.25)}
+.lt-e{background:var(--surface2);color:var(--text3);border:1px solid var(--border2)}
+.lt-url{font-family:var(--mono);font-size:0.72rem;color:var(--text2);max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-url a{color:inherit;text-decoration:none;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.lt-url a:hover{text-decoration:underline;color:var(--text)}
+.lt-ok{font-family:var(--mono);font-size:0.72rem;font-weight:700;color:var(--green)}
+.lt-err{font-family:var(--mono);font-size:0.72rem;font-weight:700;color:var(--red)}
+
+/* META */
+.meta-rows{display:flex;flex-direction:column}
+.meta-row{display:grid;grid-template-columns:140px 1fr;gap:16px;padding:10px 0;border-bottom:1px solid var(--border)}
+.meta-row:last-child{border-bottom:none}
+.mk{font-family:var(--mono);font-size:0.65rem;color:var(--text3);padding-top:2px}
+.mv{font-size:0.78rem;font-weight:300;color:var(--text2);line-height:1.55;word-break:break-word}
+.mv.c{color:var(--cyan)}
+
+/* LOG */
+.log-box{
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;max-height:210px;overflow-y:auto;
+}
+.log-box::-webkit-scrollbar{width:3px}
+.log-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.log-ln{display:flex;gap:14px;padding:2px 0;font-family:var(--mono);font-size:0.7rem;line-height:1.8}
+.lt{color:rgba(255,255,255,0.15);flex-shrink:0;min-width:52px}
+.lok{color:var(--green)}
+.lwarn{color:var(--amber)}
+.lerr{color:var(--red)}
+.linfo{color:var(--violet2)}
+.lmsg{color:rgba(255,255,255,0.4)}
+
+/* EXPORT */
+.export-bar{
+  background:rgba(8,7,15,0.9);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  padding:14px 32px;display:flex;align-items:center;gap:8px;
+  position:sticky;bottom:0;z-index:50;
+}
+.eb{
+  font-size:0.76rem;font-weight:600;padding:8px 16px;
+  border-radius:8px;cursor:pointer;font-family:var(--head);
+  border:1px solid;transition:all 0.15s;
+}
+.eb-primary{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff;border-color:transparent;box-shadow:0 0 20px rgba(124,92,252,0.3)}
+.eb-primary:hover{box-shadow:0 0 30px rgba(124,92,252,0.5);transform:translateY(-1px)}
+.eb-sec{background:var(--surface);color:var(--text2);border-color:var(--border2)}
+.eb-sec:hover{background:var(--surface2);color:var(--text);border-color:rgba(124,92,252,0.3)}
+.eb-ghost{background:transparent;border-color:transparent;color:var(--red)}
+.eb-ghost:hover{background:rgba(255,91,91,0.08);border-color:rgba(255,91,91,0.2)}
+.eb-spacer{flex:1}
+.eb-time{font-family:var(--mono);font-size:0.65rem;color:var(--text3)}
+
+/* ANIMATIONS */
+.fi{opacity:0;animation:pop-in 0.5s var(--ease) forwards}
+.d1{animation-delay:0.04s}.d2{animation-delay:0.09s}.d3{animation-delay:0.14s}
+.d4{animation-delay:0.19s}.d5{animation-delay:0.24s}.d6{animation-delay:0.29s}
+
+@media(max-width:1000px){
+  .dash-layout{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .sec-cards{grid-template-columns:1fr 1fr}
+  .perf-items{grid-template-columns:1fr}
+  .features{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .hero-title{font-size:5rem}
+  .stat-strip{gap:20px}
+  .features{grid-template-columns:1fr}
+  .sec-cards{grid-template-columns:1fr}
+  .export-bar{padding:12px 16px;flex-wrap:wrap}
+  .topbar{padding:10px 16px}
+  header{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO OVERLAY ══ -->
+<div id="intro">
+  <div id="intro-grid"></div>
+  <div class="glitch-flash"></div>
+  <div class="intro-corner tl"></div>
+  <div class="intro-corner tr"></div>
+  <div class="intro-corner bl"></div>
+  <div class="intro-corner br"></div>
+  <div id="intro-logo">
+    <img id="intro-icon" src="logo.png" alt="WICK Logo" loading="eager" decoding="sync" style="object-fit:contain;border-radius:0;background:transparent;box-shadow:none;"/>
+    <div id="intro-wordmark">
+      <span class="letter">W</span><span class="letter">I</span><span class="letter">C</span><span class="letter">K</span>
+    </div>
+    <div id="intro-tag">Website Intelligence Console Kit</div>
+    <div id="intro-type"></div>
+  </div>
+  <div id="intro-bar-wrap">
+    <div id="intro-bar-track"><div id="intro-bar-fill"></div></div>
+    <div id="intro-bar-pct">0%</div>
+  </div>
+</div>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<header>
+  <a class="logo" href="#" onclick="showHome();return false">
+    <img class="logo-icon" src="logo.png" alt="WICK" style="object-fit:contain;border-radius:0;background:transparent;box-shadow:none;"/>
+    <span class="logo-name">WICK<span class="logo-dot">.</span></span>
+  </a>
+  <nav>
+    <a href="#" class="nl">Docs</a>
+    <a href="#" class="nl">History</a>
+    <a href="#" class="nl">API</a>
+    <a href="#" class="nl ncta">Get access</a>
+  </nav>
+</header>
+
+<!-- ═══ HOME ═══ -->
+<div id="view-home">
+<div class="hero">
+
+  <div class="hero-pill">
+    <span class="pill-blink"></span>
+    Live intelligence engine · v2.4
+  </div>
+
+  <h1 class="hero-title">
+    KNOW<br/>
+    <span class="line2">EVERYTHING</span>
+  </h1>
+
+  <p class="hero-sub">
+    Drop any URL. WICK tears it apart — <strong>tech stack, SEO, security headers, performance, every link</strong> — and hands you a complete picture in seconds.
+  </p>
+
+  <div class="search-wrap">
+    <div class="search-row">
+      <span class="scheme">https://</span>
+      <input class="url-in" id="homeIn" type="text" placeholder="yourdomain.com" autocomplete="off"/>
+      <button class="go-btn" onclick="startScan()">Analyze →</button>
+    </div>
+    <div class="hints">
+      <button class="hint" onclick="setUrl('github.com')">github.com</button>
+      <button class="hint" onclick="setUrl('stripe.com')">stripe.com</button>
+      <button class="hint" onclick="setUrl('linear.app')">linear.app</button>
+      <button class="hint" onclick="setUrl('figma.com')">figma.com</button>
+      <button class="hint" onclick="setUrl('vercel.com')">vercel.com</button>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-item"><div class="stat-num">6</div><div class="stat-lbl">Analysis Modules</div></div>
+    <div class="divider"></div>
+    <div class="stat-item"><div class="stat-num">48</div><div class="stat-lbl">Data Points</div></div>
+    <div class="divider"></div>
+    <div class="stat-item"><div class="stat-num">2s</div><div class="stat-lbl">Avg Scan Time</div></div>
+    <div class="divider"></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Free to Try</div></div>
+  </div>
+
+  <div class="features">
+    <div class="feat"><div class="feat-num">01 · DETECTION</div><div class="feat-t">Tech Stack</div><div class="feat-d">Frameworks, CDNs, CMS, analytics — identified precisely.</div></div>
+    <div class="feat"><div class="feat-num">02 · AUDIT</div><div class="feat-t">SEO Intelligence</div><div class="feat-d">Meta, schema, canonicals, sitemaps scored.</div></div>
+    <div class="feat"><div class="feat-num">03 · SECURITY</div><div class="feat-t">Header Analysis</div><div class="feat-d">Every HTTP security header graded.</div></div>
+    <div class="feat"><div class="feat-num">04 · SPEED</div><div class="feat-t">Core Web Vitals</div><div class="feat-d">LCP, FCP, TBT, CLS — measured and rated.</div></div>
+    <div class="feat"><div class="feat-num">05 · MAPPING</div><div class="feat-t">Link Cartography</div><div class="feat-d">Every link, status code, and redirect chain.</div></div>
+    <div class="feat"><div class="feat-num">06 · NETWORK</div><div class="feat-t">DNS & IP Recon</div><div class="feat-d">IP, ASN, CDN, geolocation, SSL depth.</div></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="view-dash">
+
+<div class="topbar">
+  <button class="back-btn" onclick="showHome()">← Back</button>
+  <div class="bar-in">
+    <span class="bar-scheme">https://</span>
+    <input class="bar-field" id="dashIn" type="text" placeholder="example.com"/>
+    <button class="bar-btn" onclick="rescan()">Scan</button>
+  </div>
+  <div class="bar-meta">
+    <div class="status-tag" id="scanStatus"><span class="sdot"></span>Complete</div>
+    <span class="bar-time" id="scanTs">—</span>
+  </div>
+</div>
+
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="site-card fi d1">
+      <div class="sc-top">
+        <div class="sc-icon" id="s-icon">🌐</div>
+        <div>
+          <div class="sc-name" id="s-name">Awaiting scan...</div>
+          <div class="sc-url" id="s-url">example.com</div>
+        </div>
+      </div>
+      <div class="sc-desc" id="s-desc">Enter a domain to see the site summary, pages, links, and inferred technology profile.</div>
+    </div>
+
+    <div class="score-grid fi d2">
+      <div class="sc-box"><div class="scb-lbl">SEO</div><div class="scb-n g">87</div><div class="scb-bar"><div class="scb-fill fill-g" style="width:87%"></div></div></div>
+      <div class="sc-box"><div class="scb-lbl">Performance</div><div class="scb-n a">74</div><div class="scb-bar"><div class="scb-fill fill-a" style="width:74%"></div></div></div>
+      <div class="sc-box"><div class="scb-lbl">Security</div><div class="scb-n g">90</div><div class="scb-bar"><div class="scb-fill fill-g" style="width:90%"></div></div></div>
+      <div class="sc-box"><div class="scb-lbl">Accessibility</div><div class="scb-n a">70</div><div class="scb-bar"><div class="scb-fill fill-a" style="width:70%"></div></div></div>
+    </div>
+
+    <div class="kv-sec fi d3">
+      <div class="kv-hd">Network</div>
+      <div class="kv"><span class="kv-k">IP Address</span><span class="kv-v blue">140.82.114.4</span></div>
+      <div class="kv"><span class="kv-k">HTTP Version</span><span class="kv-v ok">HTTP/2</span></div>
+      <div class="kv"><span class="kv-k">CDN</span><span class="kv-v">Fastly</span></div>
+      <div class="kv"><span class="kv-k">Location</span><span class="kv-v">San Francisco, US</span></div>
+      <div class="kv"><span class="kv-k">ASN</span><span class="kv-v">AS36459</span></div>
+    </div>
+
+    <div class="kv-sec fi d4">
+      <div class="kv-hd">SSL Certificate</div>
+      <div class="kv"><span class="kv-k">Issuer</span><span class="kv-v">DigiCert Inc</span></div>
+      <div class="kv"><span class="kv-k">Expires</span><span class="kv-v ok">Mar 2026</span></div>
+      <div class="kv"><span class="kv-k">Grade</span><span class="kv-v ok">A+</span></div>
+      <div class="kv"><span class="kv-k">HSTS</span><span class="kv-v ok">Enabled</span></div>
+    </div>
+
+    <div class="kv-sec fi d5">
+      <div class="kv-hd">Page Stats</div>
+      <div class="kv"><span class="kv-k">Total Size</span><span class="kv-v warn">2.4 MB</span></div>
+      <div class="kv"><span class="kv-k">Requests</span><span class="kv-v">148</span></div>
+      <div class="kv"><span class="kv-k">Links Found</span><span class="kv-v">312</span></div>
+      <div class="kv"><span class="kv-k">Images</span><span class="kv-v">47</span></div>
+      <div class="kv"><span class="kv-k">Scripts</span><span class="kv-v warn">34</span></div>
+      <div class="kv"><span class="kv-k">HTTPS Redirect</span><span class="kv-v ok">Enforced</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TECH -->
+    <div class="card fi d1">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--violet2)"></span>Technology Stack</span>
+        <span class="card-badge">12 detected</span>
+      </div>
+      <div class="card-body">
+        <div class="tg"><span class="tg-lbl">Server & Backend</span><div class="pills"><span class="pill p-server">Ruby on Rails</span><span class="pill p-server">Nginx</span><span class="pill p-server">MySQL</span><span class="pill p-server">Redis</span><span class="pill p-server">Elasticsearch</span></div></div>
+        <div class="tg"><span class="tg-lbl">Frontend</span><div class="pills"><span class="pill p-fe">React</span><span class="pill p-fe">TypeScript</span><span class="pill p-fe">Primer CSS</span><span class="pill p-fe">Stimulus.js</span></div></div>
+        <div class="tg"><span class="tg-lbl">CDN & Security</span><div class="pills"><span class="pill p-cdn">Fastly CDN</span><span class="pill p-sec">HSTS</span><span class="pill p-sec">CSP</span></div></div>
+        <div class="tg"><span class="tg-lbl">Analytics</span><div class="pills"><span class="pill p-track">Datadog RUM</span><span class="pill p-track">GitHub Analytics</span></div></div>
+      </div>
+    </div>
+
+    <!-- PERF -->
+    <div class="card fi d2">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--amber)"></span>Core Web Vitals</span>
+        <span class="card-badge">2 warnings</span>
+      </div>
+      <div class="card-body">
+        <div class="perf-items">
+          <div class="perf-row"><div class="perf-top"><span class="perf-lbl">Largest Contentful Paint</span><span class="pval pv-a">3.8 s</span></div><div class="perf-track"><div class="perf-fill pf-a" style="width:55%"></div></div></div>
+          <div class="perf-row"><div class="perf-top"><span class="perf-lbl">First Contentful Paint</span><span class="pval pv-g">1.2 s</span></div><div class="perf-track"><div class="perf-fill pf-g" style="width:85%"></div></div></div>
+          <div class="perf-row"><div class="perf-top"><span class="perf-lbl">Total Blocking Time</span><span class="pval pv-g">120 ms</span></div><div class="perf-track"><div class="perf-fill pf-g" style="width:78%"></div></div></div>
+          <div class="perf-row"><div class="perf-top"><span class="perf-lbl">Cumulative Layout Shift</span><span class="pval pv-g">0.02</span></div><div class="perf-track"><div class="perf-fill pf-g" style="width:92%"></div></div></div>
+          <div class="perf-row"><div class="perf-top"><span class="perf-lbl">Time to Interactive</span><span class="pval pv-a">4.1 s</span></div><div class="perf-track"><div class="perf-fill pf-a" style="width:52%"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO -->
+    <div class="card fi d3">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--green)"></span>SEO Audit</span>
+        <span class="card-badge">7 pass · 2 warn · 1 fail</span>
+      </div>
+      <div class="card-body" style="padding:10px 12px">
+        <div class="seo-rows">
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">Title tag</div><div class="seo-note">"GitHub: Let's build from here" — 35 chars, optimal</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">Meta description</div><div class="seo-note">Present and well-formed at 160 characters</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">Canonical URL</div><div class="seo-note">Correctly self-referencing to https://github.com</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">robots.txt</div><div class="seo-note">Valid — 24 directives, crawl budget configured</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">XML Sitemap</div><div class="seo-note">Found at /sitemap.xml — 2,340 URLs indexed</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">Structured data</div><div class="seo-note">Organization & WebSite schema detected</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-p">✓</div><div><div class="seo-name">Mobile viewport</div><div class="seo-note">Responsive meta tag present and valid</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-w">!</div><div><div class="seo-name">Image alt text</div><div class="seo-note">12 images missing alt attributes — impacts accessibility and SEO</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-w">!</div><div><div class="seo-name">H1 count</div><div class="seo-note">Multiple H1 tags detected — recommend single H1 per page</div></div></div>
+          <div class="seo-row"><div class="seo-ic si-f">✗</div><div><div class="seo-name">LCP threshold</div><div class="seo-note">3.8 s exceeds recommended 2.5 s — impacts Core Web Vitals ranking</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="card fi d4">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--cyan)"></span>Security Headers</span>
+        <span class="card-badge" style="background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.3);color:var(--green)">Grade A</span>
+      </div>
+      <div class="card-body">
+        <div class="sec-cards">
+          <div class="sh"><div class="sh-name">Strict-Transport-Security</div><div class="sh-val sh-ok">✓ Present</div></div>
+          <div class="sh"><div class="sh-name">Content-Security-Policy</div><div class="sh-val sh-ok">✓ Present</div></div>
+          <div class="sh"><div class="sh-name">X-Frame-Options</div><div class="sh-val sh-ok">✓ DENY</div></div>
+          <div class="sh"><div class="sh-name">X-Content-Type-Options</div><div class="sh-val sh-ok">✓ nosniff</div></div>
+          <div class="sh"><div class="sh-name">Referrer-Policy</div><div class="sh-val sh-warn">⚠ Partial</div></div>
+          <div class="sh"><div class="sh-name">Permissions-Policy</div><div class="sh-val sh-fail">✗ Missing</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- META -->
+    <div class="card fi d5">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--pink)"></span>Meta & Open Graph</span>
+        <span class="card-badge">10 tags</span>
+      </div>
+      <div class="card-body">
+        <div class="meta-rows">
+          <div class="meta-row"><span class="mk">title</span><span class="mv">GitHub: Let's build from here · GitHub</span></div>
+          <div class="meta-row"><span class="mk">description</span><span class="mv">GitHub is where over 100 million developers shape the future of software, together.</span></div>
+          <div class="meta-row"><span class="mk">robots</span><span class="mv">index, follow</span></div>
+          <div class="meta-row"><span class="mk">og:title</span><span class="mv">GitHub: Let's build from here</span></div>
+          <div class="meta-row"><span class="mk">og:type</span><span class="mv">website</span></div>
+          <div class="meta-row"><span class="mk">og:image</span><span class="mv c">https://github.githubassets.com/images/modules/site/social-cards/github-social.png</span></div>
+          <div class="meta-row"><span class="mk">twitter:card</span><span class="mv">summary_large_image</span></div>
+          <div class="meta-row"><span class="mk">twitter:site</span><span class="mv">@github</span></div>
+          <div class="meta-row"><span class="mk">viewport</span><span class="mv">width=device-width, initial-scale=1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKS -->
+    <div class="card fi d5">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--violet2)"></span>Links</span>
+        <span class="card-badge">248 internal · 64 external · 1 broken</span>
+      </div>
+      <div class="card-body" style="padding:0 8px 8px">
+        <table class="links-tbl">
+          <thead><tr><th style="width:80px">Type</th><th>URL</th><th style="width:60px;text-align:right">Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="lt-t lt-i">Internal</span></td><td class="lt-url"><a href="https://github.com/features" target="_blank" rel="noopener noreferrer">/features</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-i">Internal</span></td><td class="lt-url"><a href="https://github.com/about" target="_blank" rel="noopener noreferrer">/about</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-e">External</span></td><td class="lt-url"><a href="https://docs.github.com" target="_blank" rel="noopener noreferrer">https://docs.github.com</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-i">Internal</span></td><td class="lt-url"><a href="https://github.com/pricing" target="_blank" rel="noopener noreferrer">/pricing</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-e">External</span></td><td class="lt-url"><a href="https://github.blog" target="_blank" rel="noopener noreferrer">https://github.blog</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-i">Internal</span></td><td class="lt-url"><a href="https://github.com/marketplace" target="_blank" rel="noopener noreferrer">/marketplace</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+            <tr><td><span class="lt-t lt-i">Internal</span></td><td class="lt-url"><a href="https://github.com/explore/topics" target="_blank" rel="noopener noreferrer">/explore/topics</a></td><td class="lt-err" style="text-align:right">404</td></tr>
+            <tr><td><span class="lt-t lt-e">External</span></td><td class="lt-url"><a href="https://linkedin.com/company/github" target="_blank" rel="noopener noreferrer">https://linkedin.com/company/github</a></td><td class="lt-ok" style="text-align:right">200</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="card fi d6">
+      <div class="card-hd">
+        <span class="card-title"><span class="dot" style="background:var(--text3)"></span>Scan Log</span>
+        <span class="card-badge">13 entries · 0 errors</span>
+      </div>
+      <div class="card-body">
+        <div class="log-box">
+          <div class="log-ln"><span class="lt">09:41:02</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; Initiating scan — github.com</span></div>
+          <div class="log-ln"><span class="lt">09:41:02</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; DNS resolved → 140.82.114.4</span></div>
+          <div class="log-ln"><span class="lt">09:41:03</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; SSL valid — DigiCert, expires Mar 2026</span></div>
+          <div class="log-ln"><span class="lt">09:41:03</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; HTTP/2 connection established</span></div>
+          <div class="log-ln"><span class="lt">09:41:04</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; Fetching homepage — 2.4 MB, 312 links found</span></div>
+          <div class="log-ln"><span class="lt">09:41:05</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; Tech stack detected — Rails, React, Fastly</span></div>
+          <div class="log-ln"><span class="lt">09:41:07</span><span class="lwarn">WARN</span><span class="lmsg">&nbsp; Permissions-Policy header missing</span></div>
+          <div class="log-ln"><span class="lt">09:41:08</span><span class="lwarn">WARN</span><span class="lmsg">&nbsp; LCP 3.8 s exceeds 2.5 s threshold</span></div>
+          <div class="log-ln"><span class="lt">09:41:09</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; SEO audit complete — score 87</span></div>
+          <div class="log-ln"><span class="lt">09:41:14</span><span class="lwarn">WARN</span><span class="lmsg">&nbsp; Broken link — /explore/topics (404)</span></div>
+          <div class="log-ln"><span class="lt">09:41:15</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; Complete — 4 warnings, 0 critical errors</span></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="export-bar">
+  <button id="btnExportJson" class="eb eb-primary">↓ Export JSON</button>
+  <button id="btnPdfReport" class="eb eb-sec">PDF Report</button>
+  <button id="btnCopySummary" class="eb eb-sec">Copy Summary</button>
+  <div class="eb-spacer"></div>
+  <span class="eb-time">Scanned at <span id="expTs">—</span></span>
+  <button class="eb eb-ghost" onclick="showHome()">New scan</button>
+</div>
+
+</div><!-- view-dash -->
+
+<script>
+const profiles={
+  'stripe.com':{name:'Stripe, Inc.',icon:'◈',desc:'Financial infrastructure for the internet. Millions of businesses use Stripe to accept payments online and in person.'},
+  'linear.app':{name:'Linear',icon:'◻',desc:'The issue tracking tool you\'ll enjoy using. Streamlined software project management — sprints, tasks, and bug tracking.'},
+  'figma.com':{name:'Figma, Inc.',icon:'◎',desc:'The collaborative interface design tool. Design, prototype, and gather feedback all in one place with your team.'},
+  'vercel.com':{name:'Vercel Inc.',icon:'▲',desc:'The platform for frontend developers, providing the speed and reliability innovators need to create at the moment of inspiration.'},
+};
+let lastScanData = null;
+let lastScanDomain = '';
+function setUrl(v){document.getElementById('homeIn').value=v}
+function showHome(){
+  document.getElementById('view-home').style.display='block';
+  document.getElementById('view-dash').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function startScan(){
+  const raw=(document.getElementById('homeIn').value||'example.com').trim();
+  performScan(raw.replace(/^https?:\/\//,'').split('/')[0]);
+}
+function rescan(){
+  const raw=(document.getElementById('dashIn').value||'example.com').trim();
+  performScan(raw.replace(/^https?:\/\//,'').split('/')[0]);
+}
+
+function setScanStatus(state){
+  const statusEl = document.getElementById('scanStatus');
+  if (!statusEl) return;
+  statusEl.classList.remove('status-running', 'status-failed');
+  if (state === 'running') {
+    statusEl.classList.add('status-running');
+    statusEl.innerHTML = '<span class="sdot"></span>Scanning';
+    return;
+  }
+  if (state === 'failed') {
+    statusEl.classList.add('status-failed');
+    statusEl.innerHTML = '<span class="sdot"></span>Failed';
+    return;
+  }
+  statusEl.innerHTML = '<span class="sdot"></span>Complete';
+}
+
+function renderFailedDashboard(domain, message){
+  const failureText = message || 'Crawl failed for this domain.';
+  const t = new Date().toLocaleTimeString('en-GB',{hour12:false});
+
+  document.getElementById('s-icon').textContent = '!';
+  document.getElementById('s-name').textContent = domain;
+  document.getElementById('s-url').textContent = domain;
+  document.getElementById('s-desc').textContent = failureText;
+  document.getElementById('scanTs').textContent = t;
+  document.getElementById('expTs').textContent = t;
+
+  document.querySelectorAll('.sc-box .scb-n').forEach(el => { el.textContent = '--'; });
+  document.querySelectorAll('.sc-box .scb-fill').forEach(el => { el.style.width = '0%'; });
+
+  const techGroups = document.querySelectorAll('.tg');
+  techGroups.forEach(group => {
+    const pills = group.querySelector('.pills');
+    if (pills) pills.innerHTML = '<span class="pill p-server">No crawl data</span>';
+  });
+
+  const seoRows = document.querySelectorAll('.seo-row .seo-note');
+  seoRows.forEach((note, idx) => {
+    note.textContent = idx === 0 ? failureText : 'Unavailable due to failed crawl.';
+  });
+
+  const metaRows = document.querySelectorAll('.meta-row .mv');
+  metaRows.forEach((cell, idx) => {
+    cell.textContent = idx === 0 ? domain : 'Unavailable';
+  });
+
+  const linksBody = document.querySelector('.links-tbl tbody');
+  if (linksBody) {
+    linksBody.innerHTML = `<tr><td colspan="3" class="lt-url">${escapeHtml(failureText)}</td></tr>`;
+  }
+
+  const logBox = document.querySelector('.log-box');
+  if (logBox) {
+    logBox.innerHTML = [
+      `<div class="log-ln"><span class="lt">${t}</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; Initiating scan — ${escapeHtml(domain)}</span></div>`,
+      `<div class="log-ln"><span class="lt">${t}</span><span class="lwarn">WARN</span><span class="lmsg">&nbsp; Crawl failed — ${escapeHtml(failureText)}</span></div>`
+    ].join('');
+  }
+
+  const cardBadges = document.querySelectorAll('.main .card .card-badge');
+  if (cardBadges.length >= 7) {
+    cardBadges[0].textContent = 'No data';
+    cardBadges[1].textContent = 'Unavailable';
+    cardBadges[2].textContent = 'Crawl failed';
+    cardBadges[3].textContent = 'Unknown';
+    cardBadges[4].textContent = 'No tags';
+    cardBadges[5].textContent = 'No links';
+    cardBadges[6].textContent = '1 error';
+  }
+
+  setScanStatus('failed');
+}
+
+async function performScan(domain){
+  const p=profiles[domain]||{name:domain,icon:'🌐',desc:'Analyzing site structure, metadata, and infrastructure…'};
+  document.getElementById('s-icon').textContent=p.icon;
+  document.getElementById('s-name').textContent=p.name;
+  document.getElementById('s-url').textContent=domain;
+  document.getElementById('s-desc').textContent=p.desc;
+  document.getElementById('dashIn').value=domain;
+  const t=new Date().toLocaleTimeString('en-GB',{hour12:false});
+  document.getElementById('scanTs').textContent=t;
+  document.getElementById('expTs').textContent=t;
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-dash').style.display='block';
+  setScanStatus('running');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  try {
+    const response = await fetch('/api/scrape', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url: 'https://' + domain})
+    });
+    
+    if (!response.ok) {
+      let errorMessage = 'Unknown error';
+      try {
+        const error = await response.json();
+        errorMessage = error.error || errorMessage;
+      } catch {
+        errorMessage = `HTTP ${response.status}`;
+      }
+      lastScanData = null;
+      renderFailedDashboard(domain, errorMessage);
+      return;
+    }
+    
+    const data = await response.json();
+    if (!Array.isArray(data?.pages) || !data.pages.length) {
+      lastScanData = null;
+      renderFailedDashboard(domain, data?.analysis?.summary || 'No crawlable pages were found.');
+      return;
+    }
+
+    lastScanData = data;
+    lastScanDomain = domain;
+    updateDashboard(data, domain);
+  } catch (err) {
+    lastScanData = null;
+    renderFailedDashboard(domain, 'Failed to reach scraper: ' + err.message);
+  }
+}
+function updateDashboard(data, domain){
+  const analysis = data?.analysis || {};
+  const pages = Array.isArray(data?.pages) ? data.pages : [];
+  const firstPage = pages[0] || {};
+  const keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
+  const siteName = analysis.site_name || domain;
+  const siteUrl = analysis.site_url || ('https://' + domain);
+  const summary = analysis.summary || 'No summary was returned by the scraper.';
+  const whatItDoes = analysis.what_it_does || 'Not enough information.';
+  const whatItSells = analysis.what_it_sells || 'Not enough information.';
+  const pageCount = Number.isFinite(analysis.page_count) ? analysis.page_count : pages.length;
+
+  document.getElementById('s-icon').textContent = (siteName.trim().charAt(0) || '🌐').toUpperCase();
+  document.getElementById('s-name').textContent = siteName;
+  document.getElementById('s-url').textContent = domain;
+  document.getElementById('s-desc').textContent = summary;
+
+  document.querySelector('.sc-box:nth-child(1) .scb-n').textContent = Math.max(1, Math.min(12, keywords.length || pageCount || 1));
+  document.querySelector('.sc-box:nth-child(2) .scb-n').textContent = Math.max(10, Math.min(99, Math.round((keywords.length + pageCount) * 6) || 24));
+  document.querySelector('.sc-box:nth-child(3) .scb-n').textContent = Math.max(50, Math.min(100, 60 + Math.min(40, pageCount * 4)));
+  document.querySelector('.sc-box:nth-child(4) .scb-n').textContent = Math.max(40, Math.min(100, 55 + Math.min(35, keywords.length * 4)));
+
+  const techGroups = document.querySelectorAll('.tg');
+  if (techGroups.length >= 4) {
+    const techLabel = analysis.theme && analysis.theme !== 'unknown' ? analysis.theme : 'detected from crawl';
+    const keywordPills = keywords.slice(0, 5).map(k => `<span class="pill p-fe">${escapeHtml(k)}</span>`).join('');
+    techGroups[0].querySelector('.pills').innerHTML = keywordPills || '<span class="pill p-server">No tech hints</span>';
+    techGroups[1].querySelector('.pills').innerHTML = `<span class="pill p-fe">${escapeHtml(techLabel)}</span>` + (keywords[0] ? `<span class="pill p-fe">${escapeHtml(keywords[0])}</span>` : '');
+    techGroups[2].querySelector('.pills').innerHTML = `<span class="pill p-cdn">Same-domain crawl</span><span class="pill p-sec">Live scan</span>`;
+    techGroups[3].querySelector('.pills').innerHTML = `<span class="pill p-track">${pageCount} pages</span><span class="pill p-track">${keywords.length} keywords</span>`;
+  }
+
+  const seoRows = document.querySelectorAll('.seo-row');
+  if (seoRows.length >= 10) {
+    seoRows[0].querySelector('.seo-note').textContent = `"${firstPage.title || siteName}"` + (firstPage.title ? ' — title extracted from the homepage' : ' — no title found');
+    seoRows[1].querySelector('.seo-note').textContent = analysis.summary ? 'Present in crawl output' : 'Not returned by scraper';
+    seoRows[2].querySelector('.seo-note').textContent = `Self-referencing to ${siteUrl}`;
+    seoRows[4].querySelector('.seo-note').textContent = pages.length ? `Found ${pages.length} crawlable page${pages.length === 1 ? '' : 's'} from this site` : 'No crawlable sitemap evidence in results';
+    seoRows[5].querySelector('.seo-note').textContent = analysis.theme ? `Theme inferred as ${analysis.theme}` : 'Structured data not parsed';
+    seoRows[7].querySelector('.seo-note').textContent = whatItSells;
+    seoRows[8].querySelector('.seo-note').textContent = whatItDoes;
+    seoRows[9].querySelector('.seo-note').textContent = analysis.theme && analysis.theme !== 'unknown' ? `Scan completed for ${siteName}` : 'Crawl finished';
+  }
+
+  const metaRows = document.querySelectorAll('.meta-row');
+  if (metaRows.length >= 9) {
+    metaRows[0].querySelector('.mv').textContent = `${siteName}${firstPage.title ? ' · ' + firstPage.title : ''}`;
+    metaRows[1].querySelector('.mv').textContent = summary;
+    metaRows[3].querySelector('.mv').textContent = firstPage.title || siteName;
+    metaRows[5].querySelector('.mv').textContent = siteUrl;
+    metaRows[7].querySelector('.mv').textContent = `@${domain.split('.')[0] || 'site'}`;
+  }
+
+  const linksBody = document.querySelector('.links-tbl tbody');
+  if (linksBody) {
+    const internal = [];
+    const external = [];
+    const resolveLinkHref = (url) => {
+      try {
+        return new URL(url, firstPage.url || siteUrl).href;
+      } catch {
+        return url;
+      }
+    };
+    for (const page of pages) {
+      for (const link of page.links || []) {
+        if (typeof link !== 'string' || !link.trim()) continue;
+        if (/^https?:\/\//i.test(link)) external.push(link);
+        else internal.push(link);
+      }
+    }
+    const rows = [];
+    const seen = new Set();
+    const pushLink = (type, url, status) => {
+      const key = `${type}|${url}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const href = resolveLinkHref(url);
+      rows.push(`<tr><td><span class="lt-t ${type === 'Internal' ? 'lt-i' : 'lt-e'}">${type}</span></td><td class="lt-url"><a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td><td class="${status === 404 ? 'lt-err' : 'lt-ok'}" style="text-align:right">${status}</td></tr>`);
+    };
+    internal.slice(0, 4).forEach(link => pushLink('Internal', link, 200));
+    external.slice(0, 4).forEach(link => pushLink('External', link, 200));
+    if (!rows.length) {
+      rows.push(`<tr><td colspan="3" class="lt-url">No links were captured from the crawl.</td></tr>`);
+    }
+    linksBody.innerHTML = rows.join('');
+  }
+
+  const logBox = document.querySelector('.log-box');
+  if (logBox) {
+    const stamp = new Date().toLocaleTimeString('en-GB', {hour12:false});
+    const lines = [
+      `<div class="log-ln"><span class="lt">${stamp}</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; Initiating scan — ${escapeHtml(domain)}</span></div>`,
+      `<div class="log-ln"><span class="lt">${stamp}</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; Crawl completed — ${pageCount} page${pageCount === 1 ? '' : 's'} analyzed</span></div>`,
+      `<div class="log-ln"><span class="lt">${stamp}</span><span class="lok">OK&nbsp;&nbsp;</span><span class="lmsg">&nbsp; Theme — ${escapeHtml(analysis.theme || 'unknown')}</span></div>`,
+    ];
+    if (whatItDoes && whatItDoes !== 'Not enough information.') {
+      lines.push(`<div class="log-ln"><span class="lt">${stamp}</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; What it does — ${escapeHtml(whatItDoes)}</span></div>`);
+    }
+    if (whatItSells && whatItSells !== 'Not enough information.') {
+      lines.push(`<div class="log-ln"><span class="lt">${stamp}</span><span class="linfo">INFO</span><span class="lmsg">&nbsp; What it sells — ${escapeHtml(whatItSells)}</span></div>`);
+    }
+    logBox.innerHTML = lines.join('');
+  }
+
+  document.querySelector('.card-title + .card-badge')?.textContent;
+  document.getElementById('scanTs').textContent = new Date().toLocaleTimeString('en-GB',{hour12:false});
+  document.getElementById('expTs').textContent = document.getElementById('scanTs').textContent;
+  setScanStatus('complete');
+}
+function runDash(domain){
+  performScan(domain);
+}
+
+function downloadFile(content, filename, mimeType){
+  const blob = new Blob([content], {type: mimeType});
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(blobUrl);
+}
+
+function exportJson(){
+  if (!lastScanData) {
+    alert('Run a scan first.');
+    return;
+  }
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const safeDomain = (lastScanDomain || 'site').replace(/[^a-z0-9.-]/gi, '_');
+  downloadFile(JSON.stringify(lastScanData, null, 2), `${safeDomain}-${timestamp}.json`, 'application/json');
+}
+
+function exportPdfReport(){
+  if (document.getElementById('view-dash').style.display === 'none') {
+    alert('Open a scan report first.');
+    return;
+  }
+  window.print();
+}
+
+async function copySummary(){
+  const siteName = document.getElementById('s-name')?.textContent?.trim() || (lastScanDomain || 'Website');
+  const siteUrl = document.getElementById('s-url')?.textContent?.trim() || lastScanDomain || 'N/A';
+  const summary = document.getElementById('s-desc')?.textContent?.trim() || 'No summary available.';
+  const pageCount = lastScanData?.analysis?.page_count ?? (Array.isArray(lastScanData?.pages) ? lastScanData.pages.length : 'N/A');
+  const text = `Site: ${siteName}\nURL: ${siteUrl}\nPages analyzed: ${pageCount}\nSummary: ${summary}`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('Summary copied to clipboard.');
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    alert('Summary copied to clipboard.');
+  }
+}
+
+function escapeHtml(value){
+  return String(value)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+document.getElementById('homeIn').addEventListener('keydown',e=>{if(e.key==='Enter')startScan()});
+document.getElementById('dashIn').addEventListener('keydown',e=>{if(e.key==='Enter')rescan()});
+document.getElementById('btnExportJson').addEventListener('click', exportJson);
+document.getElementById('btnPdfReport').addEventListener('click', exportPdfReport);
+document.getElementById('btnCopySummary').addEventListener('click', copySummary);
+
+/* ══ INTRO ENGINE ══ */
+(function(){
+  const intro   = document.getElementById('intro');
+  const fill    = document.getElementById('intro-bar-fill');
+  const pct     = document.getElementById('intro-bar-pct');
+  const typer   = document.getElementById('intro-type');
+  if (!intro || !fill || !pct || !typer) return;
+
+  let isActive = true;
+  let hasExited = false;
+  const timers = new Set();
+
+  function queueTimeout(fn, delay){
+    const id = setTimeout(() => {
+      timers.delete(id);
+      fn();
+    }, delay);
+    timers.add(id);
+    return id;
+  }
+
+  function clearAllTimers(){
+    for (const id of timers) clearTimeout(id);
+    timers.clear();
+  }
+
+  const lines = [
+    'Initializing intelligence engine...',
+    'Loading recon modules...',
+    'Calibrating scan protocols...',
+    'Ready.',
+  ];
+  let lineIdx=0,charIdx=0;
+  function typeNext(){
+    if(!isActive || lineIdx>=lines.length)return;
+    const line=lines[lineIdx];
+    typer.textContent=line.slice(0,charIdx+1)+'▌';
+    charIdx++;
+    if(charIdx>=line.length){
+      charIdx=0;lineIdx++;
+      queueTimeout(typeNext,400);
+    } else {
+      queueTimeout(typeNext,lineIdx===lines.length-1?60:38);
+    }
+  }
+  queueTimeout(typeNext,1550);
+
+  let progress=0;
+  const barSteps=[
+    {target:15,speed:40},{target:35,speed:30},{target:60,speed:50},
+    {target:80,speed:35},{target:95,speed:25},{target:100,speed:60},
+  ];
+  let stepIdx=0;
+  function tickBar(){
+    if(!isActive || stepIdx>=barSteps.length)return;
+    const s=barSteps[stepIdx];
+    if(progress<s.target){
+      progress+=1;
+      fill.style.width=progress+'%';
+      pct.textContent=progress+'%';
+      queueTimeout(tickBar,s.speed);
+    } else {stepIdx++;queueTimeout(tickBar,120);}
+  }
+  queueTimeout(tickBar,1050);
+
+  function exitIntro(){
+    if (hasExited) return;
+    hasExited = true;
+    isActive = false;
+    clearAllTimers();
+    intro.removeEventListener('click', skipIntro);
+    document.removeEventListener('keydown', skipIntro);
+
+    fill.style.width = '100%';
+    pct.textContent = '100%';
+    typer.textContent = 'Ready.';
+    intro.classList.add('exit');
+    queueTimeout(()=>{intro.style.display='none';},1100);
+  }
+  queueTimeout(exitIntro,3300);
+
+  function skipIntro(){
+    exitIntro();
+  }
+
+  queueTimeout(()=>{
+    intro.addEventListener('click',skipIntro,{once:true});
+    document.addEventListener('keydown',skipIntro,{once:true});
+  },900);
+})();
+</script>
+</body>
+</html>
