@@ -113,22 +113,48 @@ body{background:var(--bg);color:var(--text);font-family:var(--head);min-height:1
   box-shadow:none;
   opacity:0;
   transform:translateZ(0) scale(0.94);
+  filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+  /* Merge animations into one continuous flow to prevent hardware acceleration glitches */
+  animation: icon-combined 2.3s 0.38s cubic-bezier(0.16,1,0.3,1) both;
   will-change:transform, opacity, filter;
   backface-visibility:hidden;
-  animation:
-    icon-pop 0.75s 0.38s var(--ease) forwards,
-    icon-glow-img 1.2s 1.18s cubic-bezier(0.16,1,0.3,1) forwards;
-  filter:drop-shadow(0 0 0px rgba(124,92,252,0));
 }
-@keyframes icon-glow-img{
-  0%   {filter:drop-shadow(0 0 0px rgba(124,92,252,0))}
-  45%  {filter:drop-shadow(0 0 14px rgba(255,140,40,0.45)) drop-shadow(0 0 22px rgba(124,92,252,0.32))}
-  100% {filter:drop-shadow(0 0 10px rgba(255,140,40,0.35)) drop-shadow(0 0 16px rgba(124,92,252,0.24))}
-}
-@keyframes icon-pop{
-  0%{opacity:0;transform:translateZ(0) scale(0.94)}
-  70%{opacity:1;transform:translateZ(0) scale(1.01)}
-  100%{opacity:1;transform:translateZ(0) scale(1)}
+@keyframes icon-combined{
+  0% {
+    opacity:0;
+    transform:translateZ(0) scale(0.94);
+    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+  }
+  23% {
+    /* 70% of the pop (0.525s in) */
+    opacity:1;
+    transform:translateZ(0) scale(1.01);
+    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+  }
+  32% {
+    /* 100% of the pop (0.75s in) */
+    opacity:1;
+    transform:translateZ(0) scale(1);
+    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+  }
+  34% {
+    /* start of glow delay (0.8s in) */
+    opacity:1;
+    transform:translateZ(0) scale(1);
+    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
+  }
+  60% {
+    /* peak of glow (1.34s in) */
+    opacity:1;
+    transform:translateZ(0) scale(1);
+    filter:drop-shadow(0 0 14px rgba(255,140,40,0.45)) drop-shadow(0 0 22px rgba(124,92,252,0.32));
+  }
+  100% {
+    /* end of glow */
+    opacity:1;
+    transform:translateZ(0) scale(1);
+    filter:drop-shadow(0 0 10px rgba(255,140,40,0.35)) drop-shadow(0 0 16px rgba(124,92,252,0.24));
+  }
 }
 @keyframes icon-glow{
   0%  {box-shadow:0 0 0px rgba(124,92,252,0)}
@@ -227,7 +253,7 @@ header{
 }
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo-icon{
-  width:64px;height:64px;
+  width:94px;height:94px;
   background:transparent;
   border-radius:0;
   display:block;
@@ -707,7 +733,7 @@ nav{margin-left:auto;display:flex;align-items:center;gap:4px}
   <div class="intro-corner bl"></div>
   <div class="intro-corner br"></div>
   <div id="intro-logo">
-    <img id="intro-icon" src="logo.png" alt="WICK Logo" loading="eager" decoding="sync" style="object-fit:contain;border-radius:0;background:transparent;box-shadow:none;"/>
+    <img id="intro-icon" src="logo.png" alt="WICK Logo" style="object-fit:contain;border-radius:0;background:transparent;box-shadow:none;"/>
     <div id="intro-wordmark">
       <span class="letter">W</span><span class="letter">I</span><span class="letter">C</span><span class="letter">K</span>
     </div>
@@ -731,8 +757,8 @@ nav{margin-left:auto;display:flex;align-items:center;gap:4px}
   </a>
   <nav>
     <a href="#" class="nl">Docs</a>
-    <a href="#" class="nl">History</a>
-    <a href="#" class="nl">API</a>
+    <a href="#" class="nl" onclick="showHistory();return false">History</a>
+    <a href="#" class="nl" onclick="showAPI();return false">API</a>
     <a href="#" class="nl ncta">Get access</a>
   </nav>
 </header>
@@ -1013,6 +1039,165 @@ nav{margin-left:auto;display:flex;align-items:center;gap:4px}
 
 </div><!-- view-dash -->
 
+<!-- ═══ HISTORY ═══ -->
+<div id="view-history" style="display:none;padding-top:92px;min-height:100vh;padding-bottom:60px">
+  <div class="hero" style="margin-top:20px">
+    <h1 class="hero-title" style="font-size:2em;margin-bottom:30px">
+      SCAN<br/>
+      <span class="line2">HISTORY</span>
+    </h1>
+    
+    <div id="history-list" style="max-width:900px;margin:0 auto">
+      <div id="history-empty" style="text-align:center;padding:60px 20px;color:var(--text2)">
+        <p style="font-size:1.2em;margin-bottom:10px">No scans yet</p>
+        <p style="font-size:0.95em">Your scan history will appear here</p>
+      </div>
+      <div id="history-items" style="display:none"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:40px">
+      <button class="go-btn" onclick="showHome()" style="display:inline-block">← Back Home</button>
+      <button class="go-btn" onclick="clearHistory()" style="display:inline-block;margin-left:10px;background:var(--red);color:white" title="Clear all scan history">🗑 Clear History</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ API DOCS ═══ -->
+<div id="view-api" style="display:none;padding-top:92px;min-height:100vh;padding-bottom:60px">
+  <div class="hero" style="margin-top:20px;max-width:1000px;margin-left:auto;margin-right:auto">
+    <h1 class="hero-title" style="font-size:2em;margin-bottom:30px">
+      API<br/>
+      <span class="line2">DOCUMENTATION</span>
+    </h1>
+    
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:30px;margin-bottom:30px">
+      <h2 style="color:var(--cyan);font-size:1.3em;margin-bottom:15px">🔌 Scrape Endpoint</h2>
+      
+      <div style="background:var(--bg2);border-left:3px solid var(--violet);padding:15px;margin:20px 0;border-radius:4px;font-family:var(--mono)">
+        <div style="color:var(--text2);margin-bottom:5px">POST</div>
+        <div style="color:var(--cyan);font-size:1.1em">/api/scrape</div>
+      </div>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">Request Body</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">{
+  "url": "example.com",
+  "backend": "auto"
+}</pre>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">Parameters</h3>
+      <div style="margin-bottom:15px">
+        <div style="color:var(--cyan);font-weight:bold">url</div>
+        <div style="color:var(--text2);margin-top:5px">The website URL to scrape. Can include or exclude the protocol (http://, https://). Required.</div>
+      </div>
+      <div>
+        <div style="color:var(--cyan);font-weight:bold">backend</div>
+        <div style="color:var(--text2);margin-top:5px">Scraping backend: "auto" (default), "urllib", or "playwright". Optional.</div>
+      </div>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">Response (Success)</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">{
+  "analysis": {
+    "site_name": "GitHub",
+    "site_url": "https://github.com",
+    "summary": "The web's most-used online collaborative development...",
+    "what_it_does": "Platform for version control and collaborative...",
+    "what_it_sells": "Developer tools and hosting",
+    "theme": "technology",
+    "keywords": ["git", "development", "collaboration"],
+    "page_count": 12
+  },
+  "pages": [
+    {
+      "url": "https://github.com",
+      "title": "GitHub: Where the world builds software",
+      "headings": ["Build software better", "..."],
+      "links": ["/features", "/pricing", "..."],
+      "text": "GitHub is where over 100 million developers..."
+    }
+  ],
+  "crawl_backend": "urllib"
+}</pre>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">Response (Error)</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">{
+  "error": "Scraper error: Connection timeout"
+}</pre>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">HTTP Status Codes</h3>
+      <div style="display:grid;gap:15px">
+        <div>
+          <div style="color:var(--green);font-weight:bold">200 OK</div>
+          <div style="color:var(--text2);margin-top:5px">Scrape completed successfully</div>
+        </div>
+        <div>
+          <div style="color:var(--amber);font-weight:bold">400 Bad Request</div>
+          <div style="color:var(--text2);margin-top:5px">Invalid URL or parameters</div>
+        </div>
+        <div>
+          <div style="color:var(--red);font-weight:bold">500 Internal Server Error</div>
+          <div style="color:var(--text2);margin-top:5px">Scraper encountered an error</div>
+        </div>
+        <div>
+          <div style="color:var(--red);font-weight:bold">502 Bad Gateway</div>
+          <div style="color:var(--text2);margin-top:5px">Site may block automated browsing</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:30px;margin-bottom:30px">
+      <h2 style="color:var(--cyan);font-size:1.3em;margin-bottom:15px">💻 Code Examples</h2>
+      
+      <h3 style="color:var(--text);margin-bottom:12px">JavaScript/Fetch</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">const response = await fetch('/api/scrape', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    url: 'github.com',
+    backend: 'auto'
+  })
+});
+
+const data = await response.json();
+console.log(data.analysis.site_name);
+console.log(data.pages.length);</pre>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">Python/Requests</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">import requests
+
+response = requests.post('/api/scrape', json={
+    'url': 'github.com',
+    'backend': 'auto'
+})
+
+data = response.json()
+print(data['analysis']['site_name'])
+print(f"Pages found: {len(data['pages'])}")</pre>
+
+      <h3 style="color:var(--text);margin-top:25px;margin-bottom:12px">cURL</h3>
+      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;overflow-x:auto;color:var(--text2);font-family:var(--mono);font-size:0.9em;line-height:1.6">curl -X POST http://localhost:5000/api/scrape \
+  -H "Content-Type: application/json" \
+  -d '{"url": "github.com", "backend": "auto"}'</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:30px">
+      <h3 style="color:var(--text);margin-bottom:15px">📊 Response Fields</h3>
+      <div style="display:grid;gap:12px;font-size:0.95em">
+        <div><span style="color:var(--cyan);font-weight:bold">site_name</span> - <span style="color:var(--text2)">Name of the website</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">summary</span> - <span style="color:var(--text2)">Brief description of the site</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">page_count</span> - <span style="color:var(--text2)">Total crawlable pages found</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">theme</span> - <span style="color:var(--text2)">Detected site category (technology, ecommerce, etc)</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">keywords</span> - <span style="color:var(--text2)">Extracted keywords from content</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">pages</span> - <span style="color:var(--text2)">Array of crawled page objects with URL, title, content, links</span></div>
+        <div><span style="color:var(--cyan);font-weight:bold">crawl_backend</span> - <span style="color:var(--text2)">Which backend was used (urllib or playwright)</span></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:40px">
+      <button class="go-btn" onclick="showHome()" style="display:inline-block">← Back Home</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const profiles={
   'stripe.com':{name:'Stripe, Inc.',icon:'◈',desc:'Financial infrastructure for the internet. Millions of businesses use Stripe to accept payments online and in person.'},
@@ -1026,6 +1211,8 @@ function setUrl(v){document.getElementById('homeIn').value=v}
 function showHome(){
   document.getElementById('view-home').style.display='block';
   document.getElementById('view-dash').style.display='none';
+  document.getElementById('view-history').style.display='none';
+  document.getElementById('view-api').style.display='none';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function startScan(){
@@ -1035,6 +1222,137 @@ function startScan(){
 function rescan(){
   const raw=(document.getElementById('dashIn').value||'example.com').trim();
   performScan(raw.replace(/^https?:\/\//,'').split('/')[0]);
+}
+
+// History Management
+function saveToHistory(domain, data) {
+  try {
+    let history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+    // Limit to 50 recent scans
+    if (history.length >= 50) {
+      history = history.slice(-49);
+    }
+    const timestamp = new Date().toISOString();
+    history.push({
+      domain: domain,
+      timestamp: timestamp,
+      displayTime: new Date().toLocaleString('en-GB', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      data: data
+    });
+    localStorage.setItem('scanHistory', JSON.stringify(history));
+  } catch (e) {
+    console.error('Failed to save history:', e);
+  }
+}
+
+function showHistory() {
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-dash').style.display='none';
+  document.getElementById('view-history').style.display='block';
+  document.getElementById('view-api').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+  
+  try {
+    const history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+    const itemsContainer = document.getElementById('history-items');
+    const emptyContainer = document.getElementById('history-empty');
+    
+    if (history.length === 0) {
+      itemsContainer.style.display = 'none';
+      emptyContainer.style.display = 'block';
+      return;
+    }
+    
+    emptyContainer.style.display = 'none';
+    itemsContainer.style.display = 'block';
+    
+    const html = history.reverse().map((item, idx) => {
+      const siteName = item.data?.analysis?.site_name || item.domain;
+      const pageCount = item.data?.analysis?.page_count || (Array.isArray(item.data?.pages) ? item.data.pages.length : 0);
+      const summary = item.data?.analysis?.summary || 'No summary available';
+      
+      return `
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:20px;margin-bottom:15px;cursor:pointer;transition:all 0.3s ease" onmouseover="this.style.background='var(--surface);this.style.borderColor=\\'var(--violet)\\'" onmouseout="this.style.background='var(--surface2);this.style.borderColor=\\'var(--border2)\\'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:15px">
+            <div style="flex:1" onclick="loadFromHistory(${idx})">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="font-size:1.5em;font-weight:bold;color:var(--cyan)">${(siteName.trim().charAt(0) || '🌐').toUpperCase()}</span>
+                <div>
+                  <h3 style="margin:0;color:var(--text);font-size:1.1em">${escapeHtml(siteName)}</h3>
+                  <p style="margin:3px 0;color:var(--text2);font-size:0.9em">${escapeHtml(item.domain)}</p>
+                </div>
+              </div>
+              <p style="margin:8px 0;color:var(--text2);font-size:0.95em">${escapeHtml(summary.substring(0, 100))}${summary.length > 100 ? '...' : ''}</p>
+              <div style="display:flex;gap:15px;margin-top:10px;color:var(--text3);font-size:0.9em">
+                <span>📄 ${pageCount} page${pageCount === 1 ? '' : 's'}</span>
+                <span>⏱ ${item.displayTime}</span>
+              </div>
+            </div>
+            <button class="go-btn" style="white-space:nowrap;font-size:0.9em" onclick="loadFromHistory(${idx});return false">View →</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    itemsContainer.innerHTML = html;
+  } catch (e) {
+    console.error('Failed to load history:', e);
+    document.getElementById('history-items').style.display = 'none';
+  }
+}
+
+function loadFromHistory(idx) {
+  try {
+    const history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+    history.reverse();
+    
+    if (idx < 0 || idx >= history.length) {
+      alert('Scan not found in history');
+      return;
+    }
+    
+    const item = history[idx];
+    lastScanData = item.data;
+    lastScanDomain = item.domain;
+    
+    document.getElementById('view-home').style.display='none';
+    document.getElementById('view-dash').style.display='block';
+    document.getElementById('view-history').style.display='none';
+    document.getElementById('view-api').style.display='none';
+    
+    updateDashboard(item.data, item.domain);
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch (e) {
+    console.error('Failed to load from history:', e);
+    alert('Failed to load scan from history');
+  }
+}
+
+function clearHistory() {
+  if (confirm('Are you sure you want to delete all scan history? This cannot be undone.')) {
+    try {
+      localStorage.removeItem('scanHistory');
+      showHistory();
+    } catch (e) {
+      console.error('Failed to clear history:', e);
+      alert('Failed to clear history');
+    }
+  }
+}
+
+function showAPI() {
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-dash').style.display='none';
+  document.getElementById('view-history').style.display='none';
+  document.getElementById('view-api').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function setScanStatus(state){
@@ -1123,6 +1441,8 @@ async function performScan(domain){
   document.getElementById('expTs').textContent=t;
   document.getElementById('view-home').style.display='none';
   document.getElementById('view-dash').style.display='block';
+  document.getElementById('view-history').style.display='none';
+  document.getElementById('view-api').style.display='none';
   setScanStatus('running');
   window.scrollTo({top:0,behavior:'smooth'});
 
@@ -1155,6 +1475,7 @@ async function performScan(domain){
 
     lastScanData = data;
     lastScanDomain = domain;
+    saveToHistory(domain, data);
     updateDashboard(data, domain);
   } catch (err) {
     lastScanData = null;
