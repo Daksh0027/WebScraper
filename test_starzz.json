@@ -1,0 +1,123 @@
+{
+  "analysis": {
+    "site_url": "https://starzz.dev",
+    "site_name": "Mayank",
+    "summary": "Mayank appears to focus on github, stack, tech, peer. The focused crawl sampled 2 pages, and the content theme looks like blog / editorial. What it does: View Resume Get in touch Projects Leerio AI-powered platform enabling conversational querying and summarisation of multi-page PDF documents using a Retrieval-Augmented Generation (RAG) pipeline. What it sells: No direct product or pricing statement was found; the brand may be informational or service-led.",
+    "what_it_does": "View Resume Get in touch Projects Leerio AI-powered platform enabling conversational querying and summarisation of multi-page PDF documents using a Retrieval-Augmented Generation (RAG) pipeline.",
+    "what_it_sells": "No direct product or pricing statement was found; the brand may be informational or service-led.",
+    "theme": "blog / editorial",
+    "keywords": [
+      "github",
+      "stack",
+      "tech",
+      "peer",
+      "toggle",
+      "tura",
+      "blog",
+      "mayank"
+    ],
+    "page_count": 2,
+    "tech_stack": [
+      "Next.js"
+    ]
+  },
+  "pages": [
+    {
+      "url": "https://starzz.dev",
+      "title": "Mayank",
+      "headings": [
+        "Leerio",
+        "Tech Stack",
+        "Kestro",
+        "Tech Stack",
+        "Hand and Brain Chess",
+        "Tech Stack",
+        "Tura",
+        "Tech Stack",
+        "URL as a Skill",
+        "Making Tura: Building a Peer-to-Peer File Transfer CLI",
+        "GitHub Activity"
+      ],
+      "links": [
+        "/",
+        "/projects",
+        "/blog",
+        "/components/boombot",
+        "/contact",
+        "/resume",
+        "/contact",
+        "https://github.com/Starz099",
+        "https://leetcode.com/Starz099",
+        "https://discord.com/users/1226021151688626206",
+        "https://x.com/mayank0166",
+        "https://www.linkedin.com/in/mayank-23643b328/",
+        "mailto:mayankbh064@gmail.com",
+        "https://github.com/starz099/Leerio",
+        "https://leerio.vercel.app/",
+        "https://github.com/Starz099/Kestro",
+        "https://kestro.starzz.dev/",
+        "https://github.com/Starz099/chess",
+        "https://chess-nu-seven.vercel.app/",
+        "https://github.com/Starz099/tura",
+        "/blog/making-tura",
+        "/projects",
+        "/blog/url-as-a-skill",
+        "/blog/making-tura",
+        "/blog"
+      ],
+      "text": "Mayank Home Projects Blog Components Contact Toggle BoomBot overlay Toggle theme Toggle menu I follow through, no matter what. Hi, I'm Mayank A Software Engineer Loading… Open to work I build and ship reliable web applications, owning the entire execution from concept to production. Building fast, Failing fast, Learning faster. View Resume Get in touch Projects Leerio AI-powered platform enabling conversational querying and summarisation of multi-page PDF documents using a Retrieval-Augmented Generation (RAG) pipeline. Tech Stack Next.js TypeScript Tailwind CSS LangChain Grok API MongoDB Express.js Pinecone GitHub Live Demo Kestro Platform to practice typing speed for code, not just text. Helps developers build muscle memory for syntax using a smooth editor powered by Monaco Editor. Tech Stack Next.js TypeScript Tailwind CSS Monaco Editor CodeMirror Zustand PostgreSQL Prisma Clerk GitHub Live Demo Hand and Brain Chess An online platform for playing Hand and Brain Chess, allowing users to team up and enjoy this unique chess variant with real-time gameplay. Tech Stack React TypeScript Tailwind CSS Socket.io Node.js GitHub Live Demo Tura A blazing-fast, file transfer CLI written in Rust. Using 4 parallel TCP streams, async Tokio I/O, and ChaCha20-Poly1305 End-to-End Encryption. Tech Stack rust clap rumqttc tokio stun blake3 chacha20poly1305 GitHub Blog Show all projects Blog URL as a Skill Using the URL bar intentionally can make navigating the web faster and smarter. These are a few insights I picked up about URLs while building and using web apps. Read more March 16, 2026 3 Read more Making Tura: Building a Peer-to-Peer File Transfer CLI Tura is a peer-to-peer file transfer CLI built with Rust. In this blog post, I will share my journey of creating Tura, the challenges I faced, and the lessons I learned along the way. Read more April 4, 2026 5 Read more Show all blogs Skills Typescript Next.js Node.js React PostgreSQL Tailwind CSS Express Github MongoDB Docker GitHub Activity Starz099 ’s coding journey over the past year Fetching your GitHub activity data “ You have a right to perform your prescribed duty, but you are not entitled to the fruits of actions. ” - Bhagavad Gita You are the -- visitor Developed by Starz099 © 2026",
+      "tech_stack": [
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js"
+      ]
+    },
+    {
+      "url": "https://starzz.dev/contact",
+      "title": "Mayank",
+      "headings": [
+        "Get in Touch"
+      ],
+      "links": [
+        "/",
+        "/projects",
+        "/blog",
+        "/components/boombot",
+        "/contact"
+      ],
+      "text": "Mayank Home Projects Blog Components Contact Toggle BoomBot overlay Toggle theme Toggle menu Get in Touch Have a project in mind or just want to chat? Feel free to reach out. I'll get back to you as soon as possible. Name * Email * Subject * Message * Send Message “ You have a right to perform your prescribed duty, but you are not entitled to the fruits of actions. ” - Bhagavad Gita You are the -- visitor Developed by Starz099 © 2026",
+      "tech_stack": [
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js",
+        "Next.js"
+      ]
+    }
+  ]
+}

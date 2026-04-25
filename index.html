@@ -103,58 +103,46 @@ body{background:var(--bg);color:var(--text);font-family:var(--head);min-height:1
 }
 
 /* icon reveal */
-#intro-icon{
+#intro-icon-wrap {
   width:min(46vw,400px);
   height:auto;
   aspect-ratio:1/1;
-  background:transparent;
-  border-radius:0;
   display:block;
-  box-shadow:none;
   opacity:0;
   transform:translateZ(0) scale(0.94);
-  filter:drop-shadow(0 0 0px rgba(124,92,252,0));
-  /* Merge animations into one continuous flow to prevent hardware acceleration glitches */
-  animation: icon-combined 2.3s 0.38s cubic-bezier(0.16,1,0.3,1) both;
-  will-change:transform, opacity, filter;
-  backface-visibility:hidden;
+  animation: icon-scale 2.3s 0.38s cubic-bezier(0.16,1,0.3,1) both;
+  will-change: transform, opacity;
+  position: relative;
 }
-@keyframes icon-combined{
-  0% {
-    opacity:0;
-    transform:translateZ(0) scale(0.94);
-    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
-  }
-  23% {
-    /* 70% of the pop (0.525s in) */
-    opacity:1;
-    transform:translateZ(0) scale(1.01);
-    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
-  }
-  32% {
-    /* 100% of the pop (0.75s in) */
-    opacity:1;
-    transform:translateZ(0) scale(1);
-    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
-  }
-  34% {
-    /* start of glow delay (0.8s in) */
-    opacity:1;
-    transform:translateZ(0) scale(1);
-    filter:drop-shadow(0 0 0px rgba(124,92,252,0));
-  }
-  60% {
-    /* peak of glow (1.34s in) */
-    opacity:1;
-    transform:translateZ(0) scale(1);
-    filter:drop-shadow(0 0 14px rgba(255,140,40,0.45)) drop-shadow(0 0 22px rgba(124,92,252,0.32));
-  }
-  100% {
-    /* end of glow */
-    opacity:1;
-    transform:translateZ(0) scale(1);
-    filter:drop-shadow(0 0 10px rgba(255,140,40,0.35)) drop-shadow(0 0 16px rgba(124,92,252,0.24));
-  }
+#intro-icon, #intro-icon-glow {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:transparent;
+  display:block;
+  position: absolute;
+  top: 0; left: 0;
+  will-change: opacity;
+  transform: translateZ(0); /* Force hardware layer independent of scale */
+}
+#intro-icon{
+  z-index: 2;
+}
+#intro-icon-glow{
+  z-index: 1;
+  filter:drop-shadow(0 0 20px rgba(255,140,40,0.45)) drop-shadow(0 0 30px rgba(124,92,252,0.4));
+  animation: icon-glow-opacity 2.3s 0.38s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes icon-scale{
+  0% { opacity:0; transform:translateZ(0) scale(0.94); }
+  23% { opacity:1; transform:translateZ(0) scale(1.01); }
+  32% { opacity:1; transform:translateZ(0) scale(1); }
+  100% { opacity:1; transform:translateZ(0) scale(1); }
+}
+@keyframes icon-glow-opacity{
+  0%, 34% { opacity: 0; }
+  60% { opacity: 1; }
+  100% { opacity: 0.75; }
 }
 @keyframes icon-glow{
   0%  {box-shadow:0 0 0px rgba(124,92,252,0)}
@@ -318,6 +306,59 @@ nav{margin-left:auto;display:flex;align-items:center;gap:4px}
   opacity:0;animation:pop-in 0.8s 0.35s var(--ease) forwards;
 }
 .hero-sub strong{color:var(--text);font-weight:500}
+
+/* ═══ AI CHATBOT ═══ */
+#ai-chat-btn {
+  position:fixed; bottom:25px; right:25px; 
+  background:linear-gradient(135deg,var(--violet),var(--pink)); 
+  color:#fff; border-radius:30px; padding:12px 20px; 
+  cursor:pointer; font-weight:700; font-size:1rem;
+  box-shadow:0 0 20px rgba(124,92,252,0.4); 
+  z-index:9999; display:none; align-items:center; gap:8px;
+  transition:all 0.2s var(--ease);
+}
+#ai-chat-btn:hover { transform:translateY(-2px); box-shadow:0 0 30px rgba(124,92,252,0.6); }
+
+#ai-chat-window {
+  position:fixed; bottom:90px; right:25px; width:360px; height:500px; 
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px; 
+  display:none; flex-direction:column; z-index:9998; overflow:hidden; 
+  box-shadow:0 10px 40px rgba(0,0,0,0.8);
+  font-family:var(--head);
+}
+.chat-header {
+  background:var(--surface); padding:16px 20px; font-weight:700; color:var(--text); 
+  display:flex; justify-content:space-between; align-items:center; 
+  border-bottom:1px solid var(--border);
+}
+.chat-header button {
+  background:none; border:none; color:var(--text2); font-size:24px; 
+  cursor:pointer; line-height:1; padding:0; transition:color 0.2s;
+}
+.chat-header button:hover { color:var(--red); }
+#chat-messages {
+  flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;
+}
+.msg { padding:12px 16px; border-radius:10px; max-width:85%; font-size:0.95rem; line-height:1.5; word-wrap:break-word; }
+.msg.user { background:var(--surface2); align-self:flex-end; color:var(--text); border:1px solid var(--border2); border-bottom-right-radius:2px; }
+.msg.bot { background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.25); align-self:flex-start; color:var(--text); border-bottom-left-radius:2px; }
+.msg.sys { background:transparent; align-self:center; color:var(--text3); font-size:0.85rem; font-style:italic; text-align:center; padding:5px; max-width:100%; border:none; }
+.chat-input-area {
+  padding:15px; border-top:1px solid var(--border); display:flex; gap:10px; 
+  background:var(--bg); align-items:center;
+}
+#chatInput {
+  flex:1; background:var(--surface); border:1px solid var(--border2); 
+  color:var(--text); padding:12px 15px; border-radius:8px; outline:none; 
+  font-family:var(--head); transition:border-color 0.2s;
+}
+#chatInput:focus { border-color:var(--violet); }
+.chat-input-area button {
+  background:var(--violet); border:none; color:white; padding:0 20px; 
+  border-radius:8px; cursor:pointer; font-weight:700; height:100%;
+  transition:background 0.2s;
+}
+.chat-input-area button:hover { background:var(--violet2); }
 
 /* INPUT */
 .search-wrap{
@@ -733,7 +774,10 @@ nav{margin-left:auto;display:flex;align-items:center;gap:4px}
   <div class="intro-corner bl"></div>
   <div class="intro-corner br"></div>
   <div id="intro-logo">
-    <img id="intro-icon" src="logo.png" alt="WICK Logo" style="object-fit:contain;border-radius:0;background:transparent;box-shadow:none;"/>
+    <div id="intro-icon-wrap">
+      <img id="intro-icon-glow" src="logo.png" alt="" />
+      <img id="intro-icon" src="logo.png" alt="WICK Logo" />
+    </div>
     <div id="intro-wordmark">
       <span class="letter">W</span><span class="letter">I</span><span class="letter">C</span><span class="letter">K</span>
     </div>
@@ -1213,6 +1257,8 @@ function showHome(){
   document.getElementById('view-dash').style.display='none';
   document.getElementById('view-history').style.display='none';
   document.getElementById('view-api').style.display='none';
+  document.getElementById('ai-chat-btn').style.display='none';
+  if (typeof chatVisible !== 'undefined' && chatVisible) toggleChat();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function startScan(){
@@ -1257,6 +1303,8 @@ function showHistory() {
   document.getElementById('view-dash').style.display='none';
   document.getElementById('view-history').style.display='block';
   document.getElementById('view-api').style.display='none';
+  document.getElementById('ai-chat-btn').style.display='none';
+  if (typeof chatVisible !== 'undefined' && chatVisible) toggleChat();
   window.scrollTo({top:0,behavior:'smooth'});
   
   try {
@@ -1352,6 +1400,8 @@ function showAPI() {
   document.getElementById('view-dash').style.display='none';
   document.getElementById('view-history').style.display='none';
   document.getElementById('view-api').style.display='block';
+  document.getElementById('ai-chat-btn').style.display='none';
+  if (typeof chatVisible !== 'undefined' && chatVisible) toggleChat();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1483,6 +1533,8 @@ async function performScan(domain){
   }
 }
 function updateDashboard(data, domain){
+  const btn = document.getElementById('ai-chat-btn');
+  if(btn) btn.style.display='flex';
   const analysis = data?.analysis || {};
   const pages = Array.isArray(data?.pages) ? data.pages : [];
   const firstPage = pages[0] || {};
@@ -1507,8 +1559,11 @@ function updateDashboard(data, domain){
   const techGroups = document.querySelectorAll('.tg');
   if (techGroups.length >= 4) {
     const techLabel = analysis.theme && analysis.theme !== 'unknown' ? analysis.theme : 'detected from crawl';
+    const techStack = Array.isArray(analysis.tech_stack) ? analysis.tech_stack : [];
+    const techPills = techStack.map(t => `<span class="pill p-server">${escapeHtml(t)}</span>`).join('');
     const keywordPills = keywords.slice(0, 5).map(k => `<span class="pill p-fe">${escapeHtml(k)}</span>`).join('');
-    techGroups[0].querySelector('.pills').innerHTML = keywordPills || '<span class="pill p-server">No tech hints</span>';
+    
+    techGroups[0].querySelector('.pills').innerHTML = techPills || keywordPills || '<span class="pill p-server">No tech hints</span>';
     techGroups[1].querySelector('.pills').innerHTML = `<span class="pill p-fe">${escapeHtml(techLabel)}</span>` + (keywords[0] ? `<span class="pill p-fe">${escapeHtml(keywords[0])}</span>` : '');
     techGroups[2].querySelector('.pills').innerHTML = `<span class="pill p-cdn">Same-domain crawl</span><span class="pill p-sec">Live scan</span>`;
     techGroups[3].querySelector('.pills').innerHTML = `<span class="pill p-track">${pageCount} pages</span><span class="pill p-track">${keywords.length} keywords</span>`;
@@ -1754,5 +1809,100 @@ document.getElementById('btnCopySummary').addEventListener('click', copySummary)
   },900);
 })();
 </script>
+<!-- ═══ AI CHATBOT ═══ -->
+<div id="ai-chat-btn" onclick="toggleChat()">
+  💬 <span style="margin-left:4px">Ask AI</span>
+</div>
+<div id="ai-chat-window">
+  <div class="chat-header">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="pill-blink" style="display:inline-block"></span> WICK Intelligence
+    </div>
+    <button onclick="toggleChat()" title="Close">×</button>
+  </div>
+  <div id="chat-messages">
+    <div class="msg bot">Hello! Ask me any question.</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Message WICK AI..." autocomplete="off"/>
+    <button onclick="sendChatMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+// --- Chatbot Logic ---
+let chatVisible = false;
+
+function toggleChat() {
+  const win = document.getElementById('ai-chat-window');
+  chatVisible = !chatVisible;
+  win.style.display = chatVisible ? 'flex' : 'none';
+  if (chatVisible) {
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function addMessage(text, type) {
+  const c = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + type;
+  div.textContent = text;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const inp = document.getElementById('chatInput');
+  const txt = inp.value.trim();
+  if (!txt) return;
+
+  addMessage(txt, 'user');
+  inp.value = '';
+  inp.disabled = true;
+
+  try {
+    const payload = { message: txt };
+    if (lastScanData) {
+      payload.context = {
+        domain: lastScanDomain,
+        analysis: lastScanData.analysis,
+        tech_stack: lastScanData.analysis?.tech_stack || [],
+        pages_summary: (lastScanData.pages || []).map(p => ({
+          url: p.url,
+          title: p.title,
+          text_snippet: (p.text || '').substring(0, 1500)
+        }))
+      };
+    }
+    
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      addMessage(data.reply, 'bot');
+    } else {
+      const data = await res.json().catch(() => null);
+      if (data && data.error && data.error.includes("API key")) {
+        addMessage(data.error, 'sys');
+      } else {
+        addMessage("Sorry, I encountered an error communicating with the server.", 'bot');
+      }
+    }
+  } catch (e) {
+    addMessage("Network error. Is the server running?", 'bot');
+  }
+  inp.disabled = false;
+  inp.focus();
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendChatMessage();
+});
+</script>
+
 </body>
 </html>

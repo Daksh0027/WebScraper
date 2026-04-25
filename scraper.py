@@ -23,6 +23,7 @@ class ScrapedPage:
     headings: list[str]
     links: list[str]
     text: str
+    tech_stack: list[str]
 
 
 @dataclass(slots=True)
@@ -35,6 +36,7 @@ class WebsiteAnalysis:
     theme: str
     keywords: list[str]
     page_count: int
+    tech_stack: list[str]
 
 
 @dataclass(slots=True)
@@ -55,8 +57,29 @@ class PageParser(HTMLParser):
         self._text_parts: list[str] = []
         self._current_tag: str | None = None
         self._skip_depth = 0
+        self.tech_stack: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+
+        if tag == "script":
+            src = attributes.get("src", "").lower()
+            if "/_next/" in src: self.tech_stack.append("Next.js")
+            if "gatsby" in src: self.tech_stack.append("Gatsby")
+            if "nuxt" in src: self.tech_stack.append("Nuxt.js")
+            if "svelte" in src: self.tech_stack.append("Svelte")
+            if "vue" in src: self.tech_stack.append("Vue.js")
+            if "react" in src: self.tech_stack.append("React")
+            if "wp-content" in src or "wp-includes" in src: self.tech_stack.append("WordPress")
+
+        if tag == "meta":
+            name = (attributes.get("name") or attributes.get("property") or "").lower()
+            content = (attributes.get("content") or "").strip()
+            if name == "generator":
+                self.tech_stack.append(content)
+            elif content and name in {"description", "og:description", "twitter:description"}:
+                self.meta_description = content
+
         if tag in {"script", "style", "noscript"}:
             self._skip_depth += 1
             return
@@ -72,13 +95,6 @@ class PageParser(HTMLParser):
             href = attributes.get("href")
             if href:
                 self.links.append(href)
-
-        if tag == "meta":
-            attributes = dict(attrs)
-            name = (attributes.get("name") or attributes.get("property") or "").lower()
-            content = (attributes.get("content") or "").strip()
-            if content and name in {"description", "og:description", "twitter:description"}:
-                self.meta_description = content
 
     def handle_endtag(self, tag: str) -> None:
         if tag in {"script", "style", "noscript"}:
@@ -272,6 +288,7 @@ class WebsiteScraper:
                 theme="unknown",
                 keywords=[],
                 page_count=0,
+                tech_stack=[],
             )
 
         host = urlparse(self.start_url).netloc
@@ -282,6 +299,10 @@ class WebsiteScraper:
         what_it_does = self._infer_what_it_does(pages, keywords)
         what_it_sells = self._infer_what_it_sells(pages, keywords)
         summary = self._build_summary(site_name, keywords, theme, pages, what_it_does, what_it_sells)
+        
+        all_tech = set()
+        for p in pages:
+            all_tech.update(p.tech_stack)
 
         return WebsiteAnalysis(
             site_url=self.start_url,
@@ -292,6 +313,7 @@ class WebsiteScraper:
             theme=theme,
             keywords=keywords,
             page_count=len(pages),
+            tech_stack=sorted(list(all_tech)),
         )
 
     def _parse_page(self, url: str, parser: PageParser) -> ScrapedPage:
@@ -301,6 +323,7 @@ class WebsiteScraper:
             headings=parser.headings,
             links=parser.links,
             text=" ".join(parser.get_text().split()),
+            tech_stack=parser.tech_stack,
         )
 
     @staticmethod

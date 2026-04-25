@@ -3,6 +3,16 @@ import json
 import subprocess
 import os
 import tempfile
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+try:
+    from google import genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,12 +28,54 @@ def index():
 def logo():
     return send_file(os.path.join(BASE_DIR, 'logo.png'), mimetype='image/png')
 
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.json or {}
+    message = data.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'Message required'}), 400
+
+    api_key = os.environ.get('GOOG_API_KEY') or os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'Please set the GEMINI_API_KEY environment variable to use the AI Chatbot.'}), 400
+
+    if not GENAI_AVAILABLE:
+         return jsonify({'error': 'The google-genai module is missing. Please run `pip install google-genai`.'}), 400
+
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        context_data = data.get('context')
+        context_str = ""
+        if context_data:
+            # Provide the scraped data as contextual background
+            context_str = f"Context about the scraped website ({context_data.get('domain')}):\n"
+            context_str += json.dumps(context_data, ensure_ascii=False)[:30000] # Pass a summarized cut
+            context_str += "\n\nAnswer the user based on the context above. If the context does not contain the answer, answer generally."
+
+        # Simple context prompt
+        prompt = (
+            "You are WICK AI, an expert website intelligence assistant. "
+            "You provide accurate, brief, and helpful answers.\n\n"
+            f"{context_str}\n\n"
+            f"User: {message}"
+        )
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        return jsonify({'reply': response.text})
+    except Exception as e:
+        return jsonify({'error': f'AI Error: {str(e)}'}), 500
+
 @app.route('/api/scrape', methods=['POST'])
 def scrape():
     try:
         data = request.json or {}
         url = data.get('url', '').strip()
         backend = str(data.get('backend', 'auto')).strip().lower()
+        max_pages = str(data.get('max_pages', 25)).strip()
         
         if not url:
             return jsonify({'error': 'URL is required'}), 400
@@ -44,7 +96,7 @@ def scrape():
             cmd = [
                 'python3', scraper_path, url,
                 '--output', output_file,
-                '--max-pages', '12'
+                '--max-pages', max_pages
             ]
             if selected_backend:
                 cmd.extend(['--backend', selected_backend])
