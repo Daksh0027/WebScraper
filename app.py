@@ -3,6 +3,7 @@ import json
 import subprocess
 import os
 import tempfile
+import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -19,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @app.route('/')
 def index():
-    with open(os.path.join(BASE_DIR, 'index.html'), 'r') as f:
+    with open(os.path.join(BASE_DIR, 'index.html'), 'r', encoding='utf-8') as f:
         html_content = f.read()
     return html_content
 
@@ -94,7 +95,7 @@ def scrape():
                 output_file = tmp.name
 
             cmd = [
-                'python3', scraper_path, url,
+                sys.executable, scraper_path, url,
                 '--output', output_file,
                 '--max-pages', max_pages
             ]
@@ -106,7 +107,7 @@ def scrape():
             payload = None
             if os.path.exists(output_file):
                 try:
-                    with open(output_file, 'r') as f:
+                    with open(output_file, 'r', encoding='utf-8') as f:
                         text = f.read().strip()
                     if text:
                         payload = json.loads(text)
