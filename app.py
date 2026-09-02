@@ -7,6 +7,7 @@ import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
+# keep the env file secret and do not commit it to version control
 load_dotenv()
 
 try:
